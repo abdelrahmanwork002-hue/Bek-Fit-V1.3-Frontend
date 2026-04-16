@@ -1,14 +1,16 @@
 import { Link, Outlet, useLocation } from 'react-router';
-import { Activity, Calendar, LayoutDashboard, User, Utensils, Lightbulb, Bell, Shield } from 'lucide-react';
+import { Activity, Calendar, LayoutDashboard, User, Utensils, Lightbulb, Bell, Shield, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '../ThemeToggle';
 import { LanguageToggle } from '../LanguageToggle';
 import { useLanguage } from '@/lib/i18n';
 import { SignedIn, SignedOut, UserButton, RedirectToSignIn } from '@clerk/clerk-react';
+import { useState } from 'react';
 
 export function AppLayout() {
   const location = useLocation();
   const { t, lang } = useLanguage();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { icon: LayoutDashboard, label: t('dashboard'), path: '/app' },
@@ -21,11 +23,20 @@ export function AppLayout() {
   return (
     <>
       <SignedIn>
-        <div className="min-h-screen bg-background flex">
+        <div className="min-h-screen bg-background flex flex-col md:flex-row">
+      {/* Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside className={cn(
-        "w-20 md:w-64 border-r border-white/5 bg-black/20 fixed inset-y-0 z-50",
-        lang === 'ar' ? "right-0 border-l border-r-0" : "left-0"
+        "bg-black/20 backdrop-blur-xl border-white/5 fixed inset-y-0 z-[70] transition-transform duration-300 md:translate-x-0 w-64",
+        isMobileMenuOpen ? "translate-x-0" : (lang === 'ar' ? "translate-x-full" : "-translate-x-full"),
+        lang === 'ar' ? "right-0 border-l" : "left-0 border-r"
       )}>
         <div className="p-6 flex items-center gap-3">
           <Activity className="size-8 text-primary shrink-0" />
@@ -66,13 +77,21 @@ export function AppLayout() {
       </aside>
 
       <main className={cn(
-        "flex-1 min-h-screen",
-        lang === 'ar' ? "mr-20 md:mr-64 mr-0" : "ml-20 md:ml-64 ml-0"
+        "flex-1 min-h-screen transition-all duration-300",
+        lang === 'ar' ? "md:mr-64 mr-0" : "md:ml-64 ml-0"
       )}>
         <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-background/50 backdrop-blur-sm sticky top-0 z-40">
-          <h2 className="text-xl font-semibold">
-            {navItems.find(i => location.pathname === i.path)?.label}
-          </h2>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 -ml-2 md:hidden hover:bg-white/5 rounded-lg"
+            >
+              <Menu className="size-6" />
+            </button>
+            <h2 className="text-xl font-semibold">
+              {navItems.find(i => location.pathname === i.path)?.label}
+            </h2>
+          </div>
           <div className="flex items-center gap-4">
             <LanguageToggle />
             <ThemeToggle />

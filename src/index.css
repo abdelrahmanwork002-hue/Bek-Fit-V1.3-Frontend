@@ -67,6 +67,14 @@
     --input: 215 25% 27%;
     --ring: 178 41% 51%;
   }
+
+  [dir="rtl"] {
+    text-align: right;
+  }
+  
+  [dir="rtl"] .flex-row {
+    flex-direction: row-reverse;
+  }
 }
 
 @layer base {

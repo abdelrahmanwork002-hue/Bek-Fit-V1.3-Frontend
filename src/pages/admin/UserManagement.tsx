@@ -5,16 +5,42 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, MoreHorizontal, Download, UserPlus, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/api';
+import { useAuth } from '@clerk/clerk-react';
+import { setApiToken } from '@/lib/api';
 
-const mockUsers = [
-  { id: '1', name: 'John Doe', email: 'john@example.com', role: 'User', status: 'Active', adherence: '94%', joined: '2026-03-12' },
-  { id: '2', name: 'Sarah Wilson', email: 'sarah@fit.com', role: 'Coach', status: 'Active', adherence: 'N/A', joined: '2026-04-01' },
-  { id: '3', name: 'Mike Oxlong', email: 'mike@troll.com', role: 'User', status: 'Suspended', adherence: '12%', joined: '2026-04-10' },
-  { id: '4', name: 'Emma Watson', email: 'emma@hollywood.com', role: 'User', status: 'Active', adherence: '88%', joined: '2026-02-15' },
-];
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: users, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const token = await getToken();
+      setApiToken(token);
+      const res = await api.get('/api/users');
+      return res.data;
+    }
+  });
+
+  const updateRole = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string, role: string }) => {
+      const token = await getToken();
+      setApiToken(token);
+      await api.patch(`/api/users/${userId}/role`, { role });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey:['users'] });
+    }
+  });
+
+  const filteredUsers = users?.filter((user: any) => 
+    user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -68,39 +94,42 @@ export function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {mockUsers.map((user) => (
+                {filteredUsers?.map((user: any) => (
                   <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bold text-xs">
-                          {user.name.split(' ').map(n => n[0]).join('')}
+                        <div className="size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bold text-xs uppercase">
+                          {user.fullName?.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                         <div>
-                          <div className="font-semibold text-white">{user.name}</div>
+                          <div className="font-semibold text-white">{user.fullName}</div>
                           <div className="text-xs text-muted-foreground">{user.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <select className="bg-transparent border-none text-sm text-white focus:ring-0 cursor-pointer hover:underline">
-                        <option className="bg-background">User</option>
-                        <option className="bg-background">Coach</option>
-                        <option className="bg-background">Admin</option>
+                      <select 
+                        value={user.role || 'user'}
+                        onChange={(e) => updateRole.mutate({ userId: user.id, role: e.target.value })}
+                        className="bg-transparent border-none text-sm text-white focus:ring-0 cursor-pointer hover:underline"
+                      >
+                        <option value="user" className="bg-background">User</option>
+                        <option value="coach" className="bg-background">Coach</option>
+                        <option value="admin" className="bg-background">Admin</option>
                       </select>
                     </td>
-                    <td className="px-6 py-4 font-mono text-sm text-primary">{user.adherence}</td>
+                    <td className="px-6 py-4 font-mono text-sm text-primary">N/A</td>
                     <td className="px-6 py-4">
                       <Badge 
                         variant="secondary" 
-                        className={cn(
-                          "bg-opacity-20",
-                          user.status === 'Active' ? "bg-emerald-500 text-emerald-400" : "bg-red-500 text-red-400"
-                        )}
+                        className="bg-opacity-20 bg-emerald-500 text-emerald-400"
                       >
-                        {user.status}
+                        Active
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{user.joined}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
                     <td className="px-6 py-4 text-right space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-white">
                         <MoreHorizontal className="size-4" />
