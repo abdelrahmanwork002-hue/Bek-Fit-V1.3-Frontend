@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation } from 'react-router';
 import { Shield, Users, Library, ClipboardList, MessageSquare, Bot, LayoutDashboard, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { SignedIn, SignedOut, UserButton, RedirectToSignIn } from '@clerk/clerk-react';
 
 const adminNav = [
   { icon: LayoutDashboard, label: 'Overview', path: '/admin' },
@@ -15,7 +16,9 @@ export function AdminLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <>
+      <SignedIn>
+        <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside className="w-64 border-r border-white/5 bg-[#0a0c10] flex flex-col">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -64,9 +67,7 @@ export function AdminLayout() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-sm text-white font-medium">Administrator</div>
-            <div className="size-8 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-xs font-bold text-primary">
-              AD
-            </div>
+            <UserButton afterSignOutUrl="/" />
           </div>
         </header>
         
@@ -75,5 +76,10 @@ export function AdminLayout() {
         </div>
       </main>
     </div>
-  );
+  </SignedIn>
+  <SignedOut>
+    <RedirectToSignIn />
+  </SignedOut>
+</>
+);
 }

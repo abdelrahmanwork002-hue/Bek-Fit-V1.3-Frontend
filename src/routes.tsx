@@ -7,6 +7,7 @@ import { AdminLayout } from "./components/layouts/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { UserManagement } from "./pages/admin/UserManagement";
 import { AISettings } from "./pages/admin/AISettings";
+import { ExerciseLibrary } from "./pages/admin/ExerciseLibrary";
 
 export const router = createBrowserRouter([
   {
@@ -35,7 +36,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "users", element: <UserManagement /> },
-      { path: "exercises", element: <div className="p-8 text-center text-muted-foreground uppercase tracking-widest font-bold">Exercise Library Management Coming Soon</div> },
+      { path: "exercises", element: <ExerciseLibrary /> },
       { path: "plans", element: <div className="p-8 text-center text-muted-foreground uppercase tracking-widest font-bold">Coach Plan Builder Coming Soon</div> },
       { path: "ai-settings", element: <AISettings /> },
     ],

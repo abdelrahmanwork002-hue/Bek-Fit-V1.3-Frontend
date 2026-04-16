@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '../ThemeToggle';
 import { LanguageToggle } from '../LanguageToggle';
 import { useLanguage } from '@/lib/i18n';
+import { SignedIn, SignedOut, UserButton, RedirectToSignIn } from '@clerk/clerk-react';
 
 export function AppLayout() {
   const location = useLocation();
@@ -18,7 +19,9 @@ export function AppLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <>
+      <SignedIn>
+        <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside className={cn(
         "w-20 md:w-64 border-r border-white/5 bg-black/20 fixed inset-y-0 z-50",
@@ -73,15 +76,8 @@ export function AppLayout() {
           <div className="flex items-center gap-4">
             <LanguageToggle />
             <ThemeToggle />
-            <button className="size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center relative hover:bg-white/10 transition-colors">
-              <Bell className="size-5" />
-              <span className="absolute top-0 right-0 size-2 bg-primary rounded-full animate-ping" />
-              <span className="absolute top-0 right-0 size-2 bg-primary rounded-full" />
-            </button>
-            <div className="size-10 rounded-full bg-gradient-to-br from-primary to-emerald-400 p-[2px]">
-              <div className="size-full rounded-full bg-background flex items-center justify-center p-2 font-bold text-xs">
-                JD
-              </div>
+            <div className="flex items-center gap-4">
+              <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </header>
@@ -91,5 +87,10 @@ export function AppLayout() {
         </div>
       </main>
     </div>
-  );
+  </SignedIn>
+  <SignedOut>
+    <RedirectToSignIn />
+  </SignedOut>
+</>
+);
 }
