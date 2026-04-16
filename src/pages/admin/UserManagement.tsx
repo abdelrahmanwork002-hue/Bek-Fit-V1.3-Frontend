@@ -3,16 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, MoreHorizontal, Download, UserPlus, ShieldAlert } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Download, UserPlus, ShieldAlert, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuth } from '@clerk/clerk-react';
 import { setApiToken } from '@/lib/api';
+import { AISupportModal } from '@/components/admin/AISupportModal';
 
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
@@ -131,6 +134,17 @@ export function UserManagement() {
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="size-8 text-primary hover:text-primary/80"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsAIModalOpen(true);
+                        }}
+                      >
+                        <Sparkles className="size-4" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-white">
                         <MoreHorizontal className="size-4" />
                       </Button>
@@ -145,6 +159,12 @@ export function UserManagement() {
           </div>
         </CardContent>
       </Card>
+
+      <AISupportModal 
+        isOpen={isAIModalOpen} 
+        onClose={() => setIsAIModalOpen(false)} 
+        user={selectedUser} 
+      />
     </div>
   );
 }
