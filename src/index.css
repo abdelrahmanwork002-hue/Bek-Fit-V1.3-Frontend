@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #4FB6B2;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #1F2937;
+  --color-secondary-foreground: #ffffff;
+  --color-background: #0F1115;
+  --color-foreground: #ffffff;
+  --color-card: #111827;
+  --color-card-foreground: #ffffff;
+  --color-popover: #111827;
+  --color-popover-foreground: #ffffff;
+  --color-muted: #374151;
+  --color-muted-foreground: #9CA3AF;
+  --color-accent: #1F2937;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #EF4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #374151;
+  --color-input: #374151;
+  --color-ring: #4FB6B2;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 24% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 24% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 24% 7%;
+    --primary: 178 41% 51%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 178 41% 51%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 24% 7%;
+    --foreground: 0 0% 100%;
+    --card: 222 24% 9%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 24% 9%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 178 41% 51%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 25% 17%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 215 25% 27%;
+    --muted-foreground: 217 19% 67%;
+    --accent: 215 25% 17%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 25% 27%;
+    --input: 215 25% 27%;
+    --ring: 178 41% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+.glass {
+  @apply bg-background/80 backdrop-blur-md border border-white/10;
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-400;
+}
