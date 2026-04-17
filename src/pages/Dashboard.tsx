@@ -1,7 +1,8 @@
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap, Target, TrendingUp } from 'lucide-react';
+import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap, Target, TrendingUp, Lightbulb } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
 import { useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
@@ -9,7 +10,7 @@ import { NutritionLogModal } from '@/components/log-modals/NutritionLogModal';
 import { PainLogModal } from '@/components/log-modals/PainLogModal';
 import { WeightLogModal } from '@/components/log-modals/WeightLogModal';
 import { ExerciseLogModal } from '@/components/log-modals/ExerciseLogModal';
-import { useState } from 'react';
+import { logService } from '@/services/logService';
 
 export function Dashboard() {
   const { t } = useLanguage();
@@ -21,6 +22,7 @@ export function Dashboard() {
 
   const [workout, setWorkout] = useState([
     { 
+      id: 'ex1',
       name: 'Neck Rotations', 
       duration: '60s', 
       type: 'Mobility', 
@@ -33,6 +35,7 @@ export function Dashboard() {
       thumbnail: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=100&q=80'
     },
     { 
+      id: 'ex2',
       name: 'Cat-Cow Stretch', 
       reps: '15 reps', 
       type: 'Yoga', 
@@ -44,6 +47,7 @@ export function Dashboard() {
       thumbnail: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?auto=format&fit=crop&w=100&q=80'
     },
     { 
+      id: 'ex3',
       name: 'Scapula Pushups', 
       reps: '10 reps', 
       type: 'Calisthenics', 
@@ -55,6 +59,7 @@ export function Dashboard() {
       thumbnail: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=100&q=80'
     },
     { 
+      id: 'ex4',
       name: 'Squat ISO Hold', 
       duration: '45s', 
       type: 'Strength', 
@@ -67,6 +72,19 @@ export function Dashboard() {
       thumbnail: 'https://images.unsplash.com/photo-1574680096145-d05b474e2158?auto=format&fit=crop&w=100&q=80'
     },
   ]);
+
+  const handleLogNutrition = async (name: string, macros: any) => {
+    try {
+      await logService.saveNutritionLog({
+        ...macros,
+        name,
+        timestamp: new Date().toISOString()
+      });
+      setIsNutritionOpen(false);
+    } catch (error) {
+      console.error('Failed to log nutrition:', error);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in transition-all duration-700">
@@ -358,22 +376,29 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Modals */}
       <ExerciseLogModal 
         exercise={activeExercise} 
         isOpen={!!activeExercise} 
         onClose={() => setActiveExercise(null)}
-        onSave={(logs) => {
-          setWorkout(prev => prev.map((ex, i) => 
-            i === activeExercise.idx ? { ...ex, completed: true } : ex
-          ));
-          console.log('Saved Exercise Logs:', logs);
-          // Future: api.post('/api/logs/routine', { exerciseId: activeExercise.id, sets: logs });
+        onSave={async (logs) => {
+          try {
+            await logService.saveExerciseLog({
+              exerciseId: activeExercise.id,
+              sets: logs,
+              timestamp: new Date().toISOString()
+            });
+            setWorkout(prev => prev.map((ex, i) => 
+              i === activeExercise.idx ? { ...ex, completed: true } : ex
+            ));
+          } catch (error) {
+            console.error('Failed to save exercise log:', error);
+          }
         }}
       />
       <NutritionLogModal 
         isOpen={isNutritionOpen} 
         onClose={() => setIsNutritionOpen(false)} 
+        onSave={handleLogNutrition}
       />
       <PainLogModal 
         isOpen={isPainOpen} 
@@ -385,25 +410,4 @@ export function Dashboard() {
       />
     </div>
   );
-}
-
-function Lightbulb(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2.2 1.5 3.1.7.7 1.3 1.5 1.5 2.4" />
-      <path d="M9 18h6" />
-      <path d="M10 22h4" />
-    </svg>
-  )
 }

@@ -4,13 +4,23 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '../ThemeToggle';
 import { LanguageToggle } from '../LanguageToggle';
 import { useLanguage } from '@/lib/i18n';
-import { SignedIn, SignedOut, UserButton, RedirectToSignIn } from '@clerk/clerk-react';
-import { useState } from 'react';
+import { SignedIn, SignedOut, UserButton, RedirectToSignIn, useAuth } from '@clerk/clerk-react';
+import { useState, useEffect } from 'react';
+import { setApiToken } from '@/lib/api';
 
 export function AppLayout() {
+  const { getToken } = useAuth();
   const location = useLocation();
   const { t, isRTL } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const updateToken = async () => {
+      const token = await getToken();
+      setApiToken(token);
+    };
+    updateToken();
+  }, [getToken]);
 
   const navItems = [
     { icon: LayoutDashboard, label: t('home'), path: '/app' },
