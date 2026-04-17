@@ -22,10 +22,11 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [holdTimer, setHoldTimer] = useState(0);
+  const [isHoldActive, setIsHoldActive] = useState(false);
 
   useEffect(() => {
     if (isOpen && exercise) {
-      // Pre-fill with planned sets
       const plannedSets = Array.from({ length: exercise.sets || 3 }).map(() => ({
         reps: parseInt(exercise.reps) || 12,
         weight: 0,
@@ -33,6 +34,7 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
         completed: false
       }));
       setSets(plannedSets);
+      setHoldTimer(parseInt(exercise.duration) || 0);
     }
   }, [isOpen, exercise]);
 
@@ -44,6 +46,17 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
     return () => clearInterval(interval);
   }, [isTimerRunning]);
 
+  useEffect(() => {
+    let interval: any;
+    if (isHoldActive && holdTimer > 0) {
+      interval = setInterval(() => setHoldTimer(t => t - 1), 1000);
+    } else if (holdTimer === 0 && isHoldActive) {
+      setIsHoldActive(false);
+      // Play a subtle notification sound or vibrate if possible
+    }
+    return () => clearInterval(interval);
+  }, [isHoldActive, holdTimer]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -53,10 +66,13 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
   const handleToggleSet = (idx: number) => {
     setSets(prev => prev.map((s, i) => i === idx ? { ...s, completed: !s.completed } : s));
     if (!sets[idx].completed) {
-      // Starting rest timer after finishing a set
       setTimer(0);
       setIsTimerRunning(true);
     }
+  };
+
+  const skipSet = (idx: number) => {
+    setSets(prev => prev.filter((_, i) => i !== idx));
   };
 
   const updateSet = (idx: number, updates: Partial<SetLog>) => {
@@ -71,12 +87,15 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
         {/* Header */}
         <div className="p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="size-12 rounded-xl border border-white/10 overflow-hidden">
-              <img src={exercise.thumbnail} className="size-full object-cover" />
+            <div className="size-16 rounded-xl border border-white/10 overflow-hidden bg-white/5">
+              <img src={exercise.thumbnail} className="size-full object-cover opacity-80" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">{exercise.name}</h2>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">{exercise.type} • {exercise.target}</p>
+              <div className="flex gap-2 mt-1">
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px]">{exercise.type}</Badge>
+                <Badge variant="outline" className="border-white/10 text-[10px] text-muted-foreground">{exercise.target}</Badge>
+              </div>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
@@ -85,34 +104,48 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {/* Rest Timer */}
-          <div className="bg-white/5 rounded-2xl p-4 flex items-center justify-between border border-white/10">
-            <div className="flex items-center gap-4">
-              <div className={`size-10 rounded-full flex items-center justify-center ${isTimerRunning ? 'bg-blue-500 animate-pulse' : 'bg-white/10'}`}>
-                <RotateCcw className="size-5 text-white" />
-              </div>
+          {/* Action Row: Hold Timer & Rest Timer */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Hold Timer (New SRS Feature) */}
+            <div className="bg-emerald-500/5 rounded-2xl p-4 border border-emerald-500/10 flex items-center justify-between">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Rest Timer</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Position Hold</div>
+                <div className="text-2xl font-mono font-bold text-white">{holdTimer}s</div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                onClick={() => setIsHoldActive(!isHoldActive)}
+              >
+                {isHoldActive ? <Pause className="size-4" /> : <Play className="size-4" />}
+              </Button>
+            </div>
+
+            {/* Rest Timer */}
+            <div className="bg-blue-500/5 rounded-2xl p-4 border border-blue-500/10 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Rest Timer</div>
                 <div className="text-2xl font-mono font-bold text-white">{formatTime(timer)}</div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-white/5 border-white/10"
-                onClick={() => setIsTimerRunning(!isTimerRunning)}
-              >
-                {isTimerRunning ? <Pause className="size-4" /> : <Play className="size-4" />}
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-white/5 border-white/10"
-                onClick={() => { setTimer(0); setIsTimerRunning(false); }}
-              >
-                Reset
-              </Button>
+              <div className="flex gap-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="bg-blue-500/10 border-blue-500/20 text-blue-400 px-2"
+                  onClick={() => setIsTimerRunning(!isTimerRunning)}
+                >
+                  {isTimerRunning ? <Pause className="size-4" /> : <Play className="size-4" />}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="bg-white/5 border-white/10 px-2"
+                  onClick={() => setTimer(0)}
+                >
+                  <RotateCcw className="size-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -120,10 +153,10 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
           <div className="space-y-4">
             <div className="grid grid-cols-12 gap-4 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               <div className="col-span-1">Set</div>
-              <div className="col-span-3">Weight (kg)</div>
+              <div className="col-span-3">Weight</div>
               <div className="col-span-3">Reps</div>
-              <div className="col-span-4">RPE</div>
-              <div className="col-span-1 text-right">Done</div>
+              <div className="col-span-3">RPE</div>
+              <div className="col-span-2 text-right">Action</div>
             </div>
 
             {sets.map((set, idx) => (
@@ -140,7 +173,7 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                     type="number"
                     value={set.weight || ''}
                     onChange={(e) => updateSet(idx, { weight: parseFloat(e.target.value) })}
-                    placeholder="0"
+                    placeholder="kg"
                     className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-colors"
                   />
                 </div>
@@ -155,7 +188,7 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                   />
                 </div>
 
-                <div className="col-span-4 flex items-center gap-3">
+                <div className="col-span-3 flex items-center gap-2">
                   <input
                     type="range"
                     min="1"
@@ -165,10 +198,17 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                     onChange={(e) => updateSet(idx, { rpe: parseInt(e.target.value) })}
                     className="flex-1 accent-primary h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
                   />
-                  <span className="text-xs font-bold text-amber-400 w-4">{set.rpe}</span>
+                  <span className="text-[10px] font-bold text-amber-400 w-3">{set.rpe}</span>
                 </div>
 
-                <div className="col-span-1 flex justify-end">
+                <div className="col-span-2 flex justify-end gap-2">
+                  <button
+                    onClick={() => skipSet(idx)}
+                    className="size-8 rounded-lg flex items-center justify-center border border-white/5 bg-white/5 text-muted-foreground hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                    title="Skip Set"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
                   <button
                     onClick={() => handleToggleSet(idx)}
                     className={`size-8 rounded-lg flex items-center justify-center border transition-all ${
@@ -186,7 +226,7 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
 
           <Button 
             variant="outline" 
-            className="w-full border-dashed border-white/10 bg-transparent text-muted-foreground hover:text-white hover:bg-white/5"
+            className="w-full border-dashed border-white/10 bg-transparent text-muted-foreground hover:text-white hover:bg-white/5 rounded-xl"
             onClick={() => setSets([...sets, { reps: 0, weight: 0, rpe: 7, completed: false }])}
           >
             <Plus className="size-4 mr-2" /> Add Set
@@ -195,11 +235,11 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
 
         {/* Footer */}
         <div className="p-6 border-t border-white/5 bg-white/[0.02] flex gap-4">
-          <Button variant="outline" className="flex-1 bg-transparent border-white/10" onClick={onClose}>
+          <Button variant="outline" className="flex-1 bg-transparent border-white/10 rounded-xl" onClick={onClose}>
             Cancel
           </Button>
           <Button 
-            className="flex-1 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20"
+            className="flex-1 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 rounded-xl"
             disabled={loading}
             onClick={async () => {
               setLoading(true);
