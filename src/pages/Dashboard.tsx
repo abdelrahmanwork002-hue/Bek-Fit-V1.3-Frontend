@@ -5,9 +5,9 @@ import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap, Target, TrendingUp 
 import { useLanguage } from '@/lib/i18n';
 import { useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
-import { NutritionLogModal } from '@/components/logs/NutritionLogModal';
-import { PainLogModal } from '@/components/logs/PainLogModal';
-import { WeightLogModal } from '@/components/logs/WeightLogModal';
+import { NutritionLogModal } from '@/components/log-modals/NutritionLogModal';
+import { PainLogModal } from '@/components/log-modals/PainLogModal';
+import { WeightLogModal } from '@/components/log-modals/WeightLogModal';
 import { useState } from 'react';
 
 export function Dashboard() {
