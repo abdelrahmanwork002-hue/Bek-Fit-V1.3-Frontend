@@ -6,11 +6,12 @@ interface LanguageContextType {
   lang: Language;
   setLang: (lang: Language) => void;
   t: (key: string) => string;
+  isRTL: boolean;
 }
 
 const translations: Record<Language, Record<string, string>> = {
   en: {
-    welcome: 'Good morning, John',
+    welcome: 'Good morning',
     streak: 'Active Streak',
     routine: 'Daily Vitality Routine',
     dashboard: 'Dashboard',
@@ -21,9 +22,13 @@ const translations: Record<Language, Record<string, string>> = {
     admin: 'Admin Portal',
     getStarted: 'Get Started for Free',
     explore: 'Explore Plans',
+    users: 'Users',
+    exercises: 'Exercises',
+    plans: 'Plans',
+    aiSettings: 'AI Settings',
   },
   ar: {
-    welcome: 'صباح الخير يا جون',
+    welcome: 'صباح الخير',
     streak: 'سلسلة النشاط',
     routine: 'روتين الحيوية اليومي',
     dashboard: 'لوحة التحكم',
@@ -34,26 +39,35 @@ const translations: Record<Language, Record<string, string>> = {
     admin: 'بوابة الإدارة',
     getStarted: 'ابدأ مجانًا',
     explore: 'استكشف الخطط',
-  }
+    users: 'المستخدمون',
+    exercises: 'التمارين',
+    plans: 'الخطط',
+    aiSettings: 'إعدادات الذكاء الاصطناعي',
+  },
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Language>(() => {
-    return (localStorage.getItem('lang') as Language) || 'en';
+  const [lang, setLangState] = useState<Language>(() => {
+    return (localStorage.getItem('bekfit_lang') as Language) || 'en';
   });
 
+  const setLang = (newLang: Language) => {
+    setLangState(newLang);
+    localStorage.setItem('bekfit_lang', newLang);
+  };
+
   useEffect(() => {
-    localStorage.setItem('lang', lang);
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);
 
   const t = (key: string) => translations[lang][key] || key;
+  const isRTL = lang === 'ar';
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
+    <LanguageContext.Provider value={{ lang, setLang, t, isRTL }}>
       {children}
     </LanguageContext.Provider>
   );

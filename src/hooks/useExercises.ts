@@ -1,21 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { useAuth } from '@clerk/clerk-react';
 import { useEffect } from 'react';
-import { setApiToken } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import api, { setApiToken } from '@/lib/api';
 
-export function useExercises(filters?: { search?: string; target?: string }) {
+export function useExercises({ search = '' }: { search?: string } = {}) {
   const { getToken } = useAuth();
 
-  const query = useQuery({
-    queryKey: ['exercises', filters],
+  useEffect(() => {
+    getToken().then(setApiToken);
+  }, [getToken]);
+
+  return useQuery({
+    queryKey: ['exercises', search],
     queryFn: async () => {
-      const token = await getToken();
-      setApiToken(token);
-      const response = await api.get('/api/exercises', { params: filters });
-      return response.data;
+      const { data } = await api.get('/api/exercises', { params: { search } });
+      return data;
     },
   });
-
-  return query;
 }

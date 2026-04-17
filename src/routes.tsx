@@ -1,48 +1,45 @@
-import { createBrowserRouter, Navigate } from "react-router";
-import { LandingPage } from "./pages/LandingPage";
-import { Onboarding } from "./pages/Onboarding";
-import { Dashboard } from "./pages/Dashboard";
-import { AppLayout } from "./components/layouts/AppLayout";
-import { AdminLayout } from "./components/layouts/AdminLayout";
-import { AdminDashboard } from "./pages/admin/AdminDashboard";
-import { UserManagement } from "./pages/admin/UserManagement";
-import { AISettings } from "./pages/admin/AISettings";
-import { ExerciseLibrary } from "./pages/admin/ExerciseLibrary";
+import { createBrowserRouter, Navigate } from 'react-router';
+import { LandingPage } from './pages/LandingPage';
+import { Onboarding } from './pages/Onboarding';
+import { Dashboard } from './pages/Dashboard';
+import { AppLayout } from './components/layouts/AppLayout';
+import { AdminLayout } from './components/layouts/AdminLayout';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { UserManagement } from './pages/admin/UserManagement';
+import { AISettings } from './pages/admin/AISettings';
+import { ExerciseLibrary } from './pages/admin/ExerciseLibrary';
+
+const ComingSoon = ({ label }: { label: string }) => (
+  <div className="flex items-center justify-center h-64">
+    <p className="text-muted-foreground uppercase tracking-widest font-bold text-sm">{label} — Coming Soon</p>
+  </div>
+);
 
 export const router = createBrowserRouter([
+  { path: '/', element: <LandingPage /> },
+  { path: '/onboarding', element: <Onboarding /> },
   {
-    path: "/",
-    element: <LandingPage />,
-  },
-  {
-    path: "/onboarding",
-    element: <Onboarding />,
-  },
-  {
-    path: "/app",
+    path: '/app',
     element: <AppLayout />,
     children: [
       { index: true, element: <Dashboard /> },
-      { path: "routines", element: <Dashboard /> },
-      { path: "progress", element: <div className="p-8 text-center text-muted-foreground uppercase tracking-widest font-bold">Progress Analytics Coming Soon</div> },
-      { path: "nutrition", element: <div className="p-8 text-center text-muted-foreground uppercase tracking-widest font-bold">Nutrition Tracking Coming Soon</div> },
-      { path: "tips", element: <div className="p-8 text-center text-muted-foreground uppercase tracking-widest font-bold">Daily Vitality Tips Coming Soon</div> },
-      { path: "profile", element: <div className="p-8 text-center text-muted-foreground uppercase tracking-widest font-bold">Profile Settings Coming Soon</div> },
+      { path: 'routines', element: <Dashboard /> },
+      { path: 'progress', element: <ComingSoon label="Progress Analytics" /> },
+      { path: 'nutrition', element: <ComingSoon label="Nutrition Tracking" /> },
+      { path: 'tips', element: <ComingSoon label="Daily Vitality Tips" /> },
+      { path: 'profile', element: <ComingSoon label="Profile Settings" /> },
     ],
   },
   {
-    path: "/admin",
+    path: '/admin',
     element: <AdminLayout />,
     children: [
       { index: true, element: <AdminDashboard /> },
-      { path: "users", element: <UserManagement /> },
-      { path: "exercises", element: <ExerciseLibrary /> },
-      { path: "plans", element: <div className="p-8 text-center text-muted-foreground uppercase tracking-widest font-bold">Coach Plan Builder Coming Soon</div> },
-      { path: "ai-settings", element: <AISettings /> },
+      { path: 'users', element: <UserManagement /> },
+      { path: 'exercises', element: <ExerciseLibrary /> },
+      { path: 'plans', element: <ComingSoon label="Coach Plan Builder" /> },
+      { path: 'ai-settings', element: <AISettings /> },
     ],
   },
-  {
-    path: "*",
-    element: <Navigate to="/" replace />,
-  },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);
