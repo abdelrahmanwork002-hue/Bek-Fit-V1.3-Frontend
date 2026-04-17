@@ -107,44 +107,58 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
           {/* Action Row: Hold Timer & Rest Timer */}
           <div className="grid grid-cols-2 gap-4">
             {/* Hold Timer (New SRS Feature) */}
-            <div className="bg-emerald-500/5 rounded-2xl p-4 border border-emerald-500/10 flex items-center justify-between">
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Position Hold</div>
-                <div className="text-2xl font-mono font-bold text-white">{holdTimer}s</div>
+            <div className="relative bg-emerald-500/5 rounded-2xl p-4 border border-emerald-500/10 flex flex-col items-center justify-center min-h-[140px] group overflow-hidden">
+              <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10 text-center">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Position Hold</div>
+                <div className="text-4xl font-mono font-black text-white tabular-nums drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{holdTimer}s</div>
+                <div className="flex gap-2 mt-3 justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={`rounded-full size-8 p-0 border-emerald-500/20 transition-all ${isHoldActive ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'}`}
+                    onClick={() => setIsHoldActive(!isHoldActive)}
+                  >
+                    {isHoldActive ? <Pause className="size-4" /> : <Play className="size-4" />}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-full size-8 p-0 bg-white/5 border-white/10 text-muted-foreground hover:text-white"
+                    onClick={() => { setHoldTimer(parseInt(exercise.duration) || 0); setIsHoldActive(false); }}
+                  >
+                    <RotateCcw className="size-4" />
+                  </Button>
+                </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                onClick={() => setIsHoldActive(!isHoldActive)}
-              >
-                {isHoldActive ? <Pause className="size-4" /> : <Play className="size-4" />}
-              </Button>
+              {/* Subtle Progress Ring (Decorative) */}
+              <div className="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-1000" style={{ width: `${(holdTimer / (parseInt(exercise.duration) || 1)) * 100}%` }} />
             </div>
 
             {/* Rest Timer */}
-            <div className="bg-blue-500/5 rounded-2xl p-4 border border-blue-500/10 flex items-center justify-between">
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Rest Timer</div>
-                <div className="text-2xl font-mono font-bold text-white">{formatTime(timer)}</div>
-              </div>
-              <div className="flex gap-1">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-blue-500/10 border-blue-500/20 text-blue-400 px-2"
-                  onClick={() => setIsTimerRunning(!isTimerRunning)}
-                >
-                  {isTimerRunning ? <Pause className="size-4" /> : <Play className="size-4" />}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-white/5 border-white/10 px-2"
-                  onClick={() => setTimer(0)}
-                >
-                  <RotateCcw className="size-4" />
-                </Button>
+            <div className="relative bg-blue-500/5 rounded-2xl p-4 border border-blue-500/10 flex flex-col items-center justify-center min-h-[140px] group overflow-hidden">
+              <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10 text-center">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-1">Rest Timer</div>
+                <div className="text-4xl font-mono font-black text-white tabular-nums drop-shadow-[0_0_10px_rgba(59,130,246,0.3)]">{formatTime(timer)}</div>
+                <div className="flex gap-2 mt-3 justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={`rounded-full size-8 p-0 border-blue-500/20 transition-all ${isTimerRunning ? 'bg-blue-500 text-white border-blue-500' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'}`}
+                    onClick={() => setIsTimerRunning(!isTimerRunning)}
+                  >
+                    {isTimerRunning ? <Pause className="size-4" /> : <Play className="size-4" />}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-full size-8 p-0 bg-white/5 border-white/10 text-muted-foreground hover:text-white"
+                    onClick={() => { setTimer(0); setIsTimerRunning(false); }}
+                  >
+                    <RotateCcw className="size-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
