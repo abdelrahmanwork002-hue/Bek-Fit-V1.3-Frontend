@@ -7,7 +7,7 @@ interface SetLog {
   reps: number;
   weight: number;
   rpe: number;
-  completed: boolean;
+  status: 'completed' | 'skipped' | 'pending';
 }
 
 interface ExerciseLogModalProps {
@@ -31,7 +31,7 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
         reps: parseInt(exercise.reps) || 12,
         weight: 0,
         rpe: exercise.rpe || 7,
-        completed: false
+        status: 'pending' as const
       }));
       setSets(plannedSets);
       setHoldTimer(parseInt(exercise.duration) || 0);
@@ -52,7 +52,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
       interval = setInterval(() => setHoldTimer(t => t - 1), 1000);
     } else if (holdTimer === 0 && isHoldActive) {
       setIsHoldActive(false);
-      // Play a subtle notification sound or vibrate if possible
     }
     return () => clearInterval(interval);
   }, [isHoldActive, holdTimer]);
@@ -64,15 +63,24 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
   };
 
   const handleToggleSet = (idx: number) => {
-    setSets(prev => prev.map((s, i) => i === idx ? { ...s, completed: !s.completed } : s));
-    if (!sets[idx].completed) {
+    setSets(prev => prev.map((s, i) => 
+      i === idx 
+        ? { ...s, status: s.status === 'completed' ? 'pending' : ('completed' as const) } 
+        : s
+    ));
+    // Start rest timer if we just completed a set
+    if (sets[idx].status !== 'completed') {
       setTimer(0);
       setIsTimerRunning(true);
     }
   };
 
   const skipSet = (idx: number) => {
-    setSets(prev => prev.filter((_, i) => i !== idx));
+    setSets(prev => prev.map((s, i) => 
+      i === idx 
+        ? { ...s, status: s.status === 'skipped' ? 'pending' : ('skipped' as const) } 
+        : s
+    ));
   };
 
   const updateSet = (idx: number, updates: Partial<SetLog>) => {
@@ -177,7 +185,9 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
               <div 
                 key={idx} 
                 className={`grid grid-cols-12 gap-4 items-center p-3 rounded-xl border transition-all ${
-                  set.completed ? 'bg-primary/5 border-primary/20 opacity-60' : 'bg-white/[0.02] border-white/5'
+                  set.status === 'completed' ? 'bg-emerald-500/10 border-emerald-500/30' : 
+                  set.status === 'skipped' ? 'bg-amber-500/10 border-amber-500/30 opacity-60' :
+                  'bg-white/[0.02] border-white/5'
                 }`}
               >
                 <div className="col-span-1 font-bold text-muted-foreground">{idx + 1}</div>
@@ -186,9 +196,10 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                   <input
                     type="number"
                     value={set.weight || ''}
+                    disabled={set.status === 'skipped'}
                     onChange={(e) => updateSet(idx, { weight: parseFloat(e.target.value) })}
                     placeholder="kg"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-colors disabled:opacity-30"
                   />
                 </div>
 
@@ -196,9 +207,10 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                   <input
                     type="number"
                     value={set.reps || ''}
+                    disabled={set.status === 'skipped'}
                     onChange={(e) => updateSet(idx, { reps: parseInt(e.target.value) })}
                     placeholder="0"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-colors disabled:opacity-30"
                   />
                 </div>
 
@@ -209,8 +221,9 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                     max="10"
                     step="1"
                     value={set.rpe}
+                    disabled={set.status === 'skipped'}
                     onChange={(e) => updateSet(idx, { rpe: parseInt(e.target.value) })}
-                    className="flex-1 accent-primary h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                    className="flex-1 accent-primary h-1 bg-white/10 rounded-lg appearance-none cursor-pointer disabled:opacity-30"
                   />
                   <span className="text-[10px] font-bold text-amber-400 w-3">{set.rpe}</span>
                 </div>
@@ -218,16 +231,20 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                 <div className="col-span-2 flex justify-end gap-2">
                   <button
                     onClick={() => skipSet(idx)}
-                    className="size-8 rounded-lg flex items-center justify-center border border-white/5 bg-white/5 text-muted-foreground hover:bg-red-500/20 hover:text-red-400 transition-colors"
-                    title="Skip Set"
+                    className={`size-8 rounded-lg flex items-center justify-center border transition-colors ${
+                      set.status === 'skipped'
+                        ? 'bg-amber-500 border-amber-500 text-white'
+                        : 'border-white/5 bg-white/5 text-muted-foreground hover:bg-amber-500/20 hover:text-amber-400'
+                    }`}
+                    title="Mark as Skipped"
                   >
                     <Trash2 className="size-4" />
                   </button>
                   <button
                     onClick={() => handleToggleSet(idx)}
                     className={`size-8 rounded-lg flex items-center justify-center border transition-all ${
-                      set.completed 
-                        ? 'bg-primary border-primary text-white' 
+                      set.status === 'completed' 
+                        ? 'bg-emerald-500 border-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
                         : 'bg-white/5 border-white/10 text-muted-foreground hover:border-white/20'
                     }`}
                   >
@@ -241,7 +258,7 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
           <Button 
             variant="outline" 
             className="w-full border-dashed border-white/10 bg-transparent text-muted-foreground hover:text-white hover:bg-white/5 rounded-xl"
-            onClick={() => setSets([...sets, { reps: 0, weight: 0, rpe: 7, completed: false }])}
+            onClick={() => setSets([...sets, { reps: 0, weight: 0, rpe: 7, status: 'pending' }])}
           >
             <Plus className="size-4 mr-2" /> Add Set
           </Button>
