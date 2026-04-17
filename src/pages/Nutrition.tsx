@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Utensils, Clock, Flame, ChevronRight, CheckCircle2, Info, RefreshCw } from 'lucide-react';
+import { Utensils, Clock, Flame, ChevronRight, CheckCircle2, Info, RefreshCw, X } from 'lucide-react';
 import { NutritionLogModal } from '@/components/log-modals/NutritionLogModal';
 
 const mealPlan = [
@@ -59,6 +59,7 @@ const mealPlan = [
 export function Nutrition() {
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
+  const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
 
   const totalMacros = mealPlan.reduce((acc, meal) => ({
     cal: acc.cal + meal.calories,
@@ -75,8 +76,8 @@ export function Nutrition() {
           <p className="text-muted-foreground mt-1">Daily meal plan and adherence tracking.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="bg-white/5 border-white/10 text-white">
-            <RefreshCw className="size-4 mr-2" /> Swap Meals
+          <Button variant="outline" className="bg-white/5 border-white/10 text-white" onClick={() => setIsSwapModalOpen(true)}>
+            <RefreshCw className="size-4 mr-2" /> Substitution Library
           </Button>
           <Button onClick={() => setIsLogOpen(true)} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold">
             Log Extra Meal
@@ -211,27 +212,50 @@ export function Nutrition() {
         </div>
       )}
 
+      {/* Meal Swap Modal (Story 16) */}
+      {isSwapModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl bg-[#0F1115] border border-white/10 rounded-3xl shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-white">Meal Substitution Library</h2>
+                <p className="text-xs text-muted-foreground mt-1">Choose a replacement meal that fits your macros.</p>
+              </div>
+              <button 
+                onClick={() => setIsSwapModalOpen(false)}
+                className="p-2 hover:bg-white/5 rounded-full transition-colors"
+              >
+                <X className="size-5 text-white" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {[
+                { name: 'Oatmeal with Almonds', cal: 420, pro: 15, car: 50, fat: 12, type: 'Breakfast' },
+                { name: 'Turkey & Swiss Wrap', cal: 510, pro: 35, car: 45, fat: 18, type: 'Lunch' },
+                { name: 'Grilled Steak & Greens', cal: 620, pro: 55, car: 12, fat: 38, type: 'Dinner' },
+                { name: 'Hummus & Carrots', cal: 180, pro: 8, car: 22, fat: 10, type: 'Snack' },
+              ].map((meal, i) => (
+                <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between group hover:border-primary/50 transition-colors cursor-pointer">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase text-primary mb-1">{meal.type}</div>
+                    <h4 className="font-bold text-white">{meal.name}</h4>
+                    <div className="flex gap-4 mt-1 text-[10px] text-muted-foreground">
+                      <span>{meal.cal} kcal</span>
+                      <span>P: {meal.pro}g</span>
+                      <span>C: {meal.car}g</span>
+                      <span>F: {meal.fat}g</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" className="opacity-0 group-hover:opacity-100 bg-primary/20 text-primary">Swap</Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <NutritionLogModal isOpen={isLogOpen} onClose={() => setIsLogOpen(false)} />
     </div>
   );
-}
-
-function X(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  )
 }
