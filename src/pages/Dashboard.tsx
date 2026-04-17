@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { NutritionLogModal } from '@/components/log-modals/NutritionLogModal';
 import { PainLogModal } from '@/components/log-modals/PainLogModal';
 import { WeightLogModal } from '@/components/log-modals/WeightLogModal';
+import { ExerciseLogModal } from '@/components/log-modals/ExerciseLogModal';
 import { useState } from 'react';
 
 export function Dashboard() {
@@ -16,12 +17,55 @@ export function Dashboard() {
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
   const [isPainOpen, setIsPainOpen] = useState(false);
   const [isWeightOpen, setIsWeightOpen] = useState(false);
+  const [activeExercise, setActiveExercise] = useState<any>(null);
 
   const [workout, setWorkout] = useState([
-    { name: 'Neck Rotations', duration: '60s', type: 'Mobility', completed: true },
-    { name: 'Cat-Cow Stretch', reps: '15 reps', type: 'Yoga', completed: true },
-    { name: 'Scapula Pushups', reps: '10 reps', type: 'Calisthenics', completed: false },
-    { name: 'Squat ISO Hold', duration: '45s', type: 'Strength', completed: false },
+    { 
+      name: 'Neck Rotations', 
+      duration: '60s', 
+      type: 'Mobility', 
+      completed: true, 
+      target: 'Neck, Traps',
+      rpe: 2, 
+      rest: '0s', 
+      sets: 1, 
+      reps: '1 min',
+      thumbnail: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=100&q=80'
+    },
+    { 
+      name: 'Cat-Cow Stretch', 
+      reps: '15 reps', 
+      type: 'Yoga', 
+      completed: true, 
+      target: 'Spine, Core',
+      rpe: 3, 
+      rest: '30s', 
+      sets: 2, 
+      thumbnail: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?auto=format&fit=crop&w=100&q=80'
+    },
+    { 
+      name: 'Scapula Pushups', 
+      reps: '10 reps', 
+      type: 'Calisthenics', 
+      completed: false, 
+      target: 'Scapula, Shoulders',
+      rpe: 5, 
+      rest: '60s', 
+      sets: 3, 
+      thumbnail: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=100&q=80'
+    },
+    { 
+      name: 'Squat ISO Hold', 
+      duration: '45s', 
+      type: 'Strength', 
+      completed: false, 
+      target: 'Quads, Glutes',
+      rpe: 7, 
+      rest: '90s', 
+      sets: 3, 
+      reps: '45s',
+      thumbnail: 'https://images.unsplash.com/photo-1574680096145-d05b474e2158?auto=format&fit=crop&w=100&q=80'
+    },
   ]);
 
   return (
@@ -67,6 +111,42 @@ export function Dashboard() {
         ))}
       </div>
 
+      {/* Daily Vitality Progress (SRS Requirement) */}
+      <Card className="glass p-6 border-white/5 bg-gradient-to-r from-primary/5 to-emerald-500/5">
+        <div className="flex flex-col md:flex-row gap-8 items-center">
+          <div className="flex-1 space-y-4 w-full">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white">Daily Vitality Goals</h3>
+              <Badge variant="outline" className="text-primary border-primary/20">82% Complete</Badge>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { label: 'Calories', current: 1640, goal: 2000, color: 'bg-primary' },
+                { label: 'Protein', current: 82, goal: 120, color: 'bg-emerald-400' },
+                { label: 'Carbs', current: 180, goal: 250, color: 'bg-amber-400' },
+                { label: 'Fats', current: 45, goal: 65, color: 'bg-blue-400' },
+              ].map((m, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <span>{m.label}</span>
+                    <span className="text-white">{Math.round((m.current / m.goal) * 100)}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className={cn("h-full rounded-full", m.color)} style={{ width: `${(m.current / m.goal) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Button 
+            className="w-full md:w-auto bg-primary/20 hover:bg-primary text-white border border-primary/30"
+            onClick={() => setIsNutritionOpen(true)}
+          >
+            Log Meal
+          </Button>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Workout Column */}
         <div className="lg:col-span-2 space-y-6">
@@ -84,42 +164,59 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="p-0">
               {workout.map((ex, idx) => (
-                <div key={idx} className="flex items-center justify-between p-6 border-b border-white/5 hover:bg-white/5 transition-colors">
-                  <div className="flex items-center gap-6">
-                    <div className="size-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center relative">
-                      {ex.completed ? (
-                        <CheckCircle2 className="size-6 text-primary" />
-                      ) : (
-                        <Play className="size-5 text-white" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-lg">{ex.name}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span>{ex.type}</span>
-                        <span className="size-1 rounded-full bg-white/20" />
-                        <span>{ex.duration || ex.reps}</span>
+                <div key={idx} className="flex flex-col p-6 border-b border-white/5 hover:bg-white/5 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-6">
+                      <div className="size-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden relative group">
+                        <img src={ex.thumbnail} alt={ex.name} className="size-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
+                        {ex.completed && (
+                          <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[1px]">
+                            <CheckCircle2 className="size-8 text-white drop-shadow-lg" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-xl text-white">{ex.name}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-[10px] py-0 border-white/10 uppercase">{ex.type}</Badge>
+                          <span className="size-1 rounded-full bg-white/20" />
+                          <span className="font-medium text-primary/80">{ex.target}</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-4">
+                      {ex.completed ? (
+                        <span className="text-[10px] font-black tracking-tighter text-primary px-3 py-1 bg-primary/10 rounded-full border border-primary/20 uppercase">Completed</span>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-white bg-primary/20 hover:bg-primary hover:text-white transition-all rounded-lg font-bold"
+                          onClick={() => setActiveExercise({ ...ex, idx })}
+                        >
+                          Log Session
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    {ex.completed ? (
-                      <span className="text-xs font-bold text-primary px-3 py-1 bg-primary/10 rounded-full">Logged</span>
-                    ) : (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-muted-foreground hover:text-white"
-                        onClick={() => {
-                          setWorkout(prev => prev.map((ex, i) => 
-                            i === idx ? { ...ex, completed: true } : ex
-                          ));
-                        }}
-                      >
-                        Log
-                      </Button>
-                    )}
-                    <Info className="size-5 text-white/20 hover:text-white transition-colors cursor-pointer" />
+                  
+                  {/* Detailed Stats Grid */}
+                  <div className="grid grid-cols-4 gap-4 pl-22">
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sets & Reps</div>
+                      <div className="text-sm font-bold text-white">{ex.sets} × {ex.reps || ex.duration}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Target RPE</div>
+                      <div className="text-sm font-bold text-amber-400">RPE {ex.rpe}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Rest Period</div>
+                      <div className="text-sm font-bold text-blue-400">{ex.rest}</div>
+                    </div>
+                    <div className="flex items-end justify-end">
+                      <Info className="size-5 text-white/20 hover:text-white transition-colors cursor-pointer" />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -262,6 +359,18 @@ export function Dashboard() {
       </div>
 
       {/* Modals */}
+      <ExerciseLogModal 
+        exercise={activeExercise} 
+        isOpen={!!activeExercise} 
+        onClose={() => setActiveExercise(null)}
+        onSave={(logs) => {
+          setWorkout(prev => prev.map((ex, i) => 
+            i === activeExercise.idx ? { ...ex, completed: true } : ex
+          ));
+          console.log('Saved Exercise Logs:', logs);
+          // Future: api.post('/api/logs/routine', { exerciseId: activeExercise.id, sets: logs });
+        }}
+      />
       <NutritionLogModal 
         isOpen={isNutritionOpen} 
         onClose={() => setIsNutritionOpen(false)} 
