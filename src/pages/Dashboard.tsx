@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap } from 'lucide-react';
+import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap, Target, TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
+import { useUser } from '@clerk/clerk-react';
+import { cn } from '@/lib/utils';
 
 export function Dashboard() {
   const { t } = useLanguage();
+  const { user } = useUser();
   const workout = [
     { name: 'Neck Rotations', duration: '60s', type: 'Mobility', completed: true },
     { name: 'Cat-Cow Stretch', reps: '15 reps', type: 'Yoga', completed: true },
@@ -18,7 +21,9 @@ export function Dashboard() {
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">{t('welcome')}</h1>
+          <h1 className="text-4xl font-bold tracking-tight">
+            {t('welcome')}, {user?.firstName || 'Back'}
+          </h1>
           <p className="text-muted-foreground mt-1">You've hit your goals for 4 days in a row. Keep the streak alive!</p>
         </div>
         <div className="flex gap-4">
@@ -32,6 +37,26 @@ export function Dashboard() {
             </div>
           </Card>
         </div>
+      </div>
+
+      {/* Quick Metrics Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { icon: Target, label: 'Weekly Goal', value: '85%', color: 'text-primary' },
+          { icon: Zap, label: 'Sessions', value: '4/6', color: 'text-amber-400' },
+          { icon: TrendingUp, label: 'Mobility Index', value: '+12%', color: 'text-emerald-400' },
+          { icon: CheckCircle2, label: 'Logs Sync', value: 'Live', color: 'text-blue-400' },
+        ].map((metric, i) => (
+          <Card key={i} className="glass p-4 border-white/5 flex items-center gap-4">
+            <div className={cn("size-10 rounded-lg bg-white/5 flex items-center justify-center", metric.color)}>
+              <metric.icon className="size-5" />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-white">{metric.value}</div>
+              <div className="text-[10px] text-muted-foreground uppercase font-medium">{metric.label}</div>
+            </div>
+          </Card>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -106,6 +131,44 @@ export function Dashboard() {
               </div>
             </Card>
           </div>
+
+          {/* Weekly Overview (Mock Chart) */}
+          <Card className="glass p-6 border-white/5">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <CardTitle className="text-xl">Weekly Overview</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">Activity over the last 7 days</p>
+              </div>
+              <div className="flex gap-2">
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase">
+                  <div className="size-2 rounded-full bg-primary" />
+                  Mobility
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-end justify-between h-32 gap-2 mt-4 px-2">
+              {[
+                { day: 'M', value: '45%' },
+                { day: 'T', value: '70%' },
+                { day: 'W', value: '30%' },
+                { day: 'T', value: '85%' },
+                { day: 'F', value: '60%' },
+                { day: 'S', value: '95%' },
+                { day: 'S', value: '40%' },
+              ].map((bar, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
+                  <div className="w-full relative flex flex-col justify-end h-full">
+                    <div 
+                      className="w-full bg-primary/20 rounded-t-md group-hover:bg-primary/40 transition-colors cursor-pointer" 
+                      style={{ height: bar.value }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-bold">{bar.day}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
 
         {/* Sidebar Column */}

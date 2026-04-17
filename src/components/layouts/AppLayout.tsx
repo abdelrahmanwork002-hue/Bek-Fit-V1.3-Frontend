@@ -13,7 +13,7 @@ export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
-    { icon: LayoutDashboard, label: t('dashboard'), path: '/app' },
+    { icon: LayoutDashboard, label: t('home'), path: '/app' },
     { icon: Calendar, label: t('progress'), path: '/app/progress' },
     { icon: Utensils, label: t('nutrition'), path: '/app/nutrition' },
     { icon: Lightbulb, label: t('tips'), path: '/app/tips' },
