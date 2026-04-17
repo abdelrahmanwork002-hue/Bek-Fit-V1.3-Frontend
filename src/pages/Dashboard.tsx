@@ -5,10 +5,18 @@ import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap, Target, TrendingUp 
 import { useLanguage } from '@/lib/i18n';
 import { useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
+import { NutritionLogModal } from '@/components/logs/NutritionLogModal';
+import { PainLogModal } from '@/components/logs/PainLogModal';
+import { WeightLogModal } from '@/components/logs/WeightLogModal';
+import { useState } from 'react';
 
 export function Dashboard() {
   const { t } = useLanguage();
   const { user } = useUser();
+  const [isNutritionOpen, setIsNutritionOpen] = useState(false);
+  const [isPainOpen, setIsPainOpen] = useState(false);
+  const [isWeightOpen, setIsWeightOpen] = useState(false);
+
   const workout = [
     { name: 'Neck Rotations', duration: '60s', type: 'Mobility', completed: true },
     { name: 'Cat-Cow Stretch', reps: '15 reps', type: 'Yoga', completed: true },
@@ -95,9 +103,22 @@ export function Dashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-white">
-                      Log
-                    </Button>
+                    {ex.completed ? (
+                      <span className="text-xs font-bold text-primary px-3 py-1 bg-primary/10 rounded-full">Logged</span>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-muted-foreground hover:text-white"
+                        onClick={() => {
+                          const updated = [...workout];
+                          updated[idx].completed = true;
+                          // In a real app, this would call the API
+                        }}
+                      >
+                        Log
+                      </Button>
+                    )}
                     <Info className="size-5 text-white/20 hover:text-white transition-colors cursor-pointer" />
                   </div>
                 </div>
@@ -112,7 +133,7 @@ export function Dashboard() {
 
           {/* Nutrition Summary (Story 7) */}
           <div className="grid grid-cols-2 gap-4">
-            <Card className="glass p-6 space-y-4">
+            <Card className="glass p-6 space-y-4 relative group">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Calories</h3>
                 <span className="text-xl font-bold text-white">1,640 <span className="text-xs text-muted-foreground">/ 2000</span></span>
@@ -120,8 +141,16 @@ export function Dashboard() {
               <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-primary" style={{ width: '82%' }} />
               </div>
+              <Button 
+                onClick={() => setIsNutritionOpen(true)}
+                variant="ghost" 
+                size="sm" 
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20"
+              >
+                Log
+              </Button>
             </Card>
-            <Card className="glass p-6 space-y-4">
+            <Card className="glass p-6 space-y-4 relative group">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Protein</h3>
                 <span className="text-xl font-bold text-white">82g <span className="text-xs text-muted-foreground">/ 120g</span></span>
@@ -129,6 +158,14 @@ export function Dashboard() {
               <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
                 <div className="h-full bg-emerald-400" style={{ width: '68%' }} />
               </div>
+              <Button 
+                onClick={() => setIsNutritionOpen(true)}
+                variant="ghost" 
+                size="sm" 
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20"
+              >
+                Log
+              </Button>
             </Card>
           </div>
 
@@ -140,10 +177,14 @@ export function Dashboard() {
                 <p className="text-xs text-muted-foreground mt-1">Activity over the last 7 days</p>
               </div>
               <div className="flex gap-2">
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase">
-                  <div className="size-2 rounded-full bg-primary" />
-                  Mobility
-                </div>
+                <Button 
+                  onClick={() => setIsWeightOpen(true)}
+                  variant="outline" 
+                  size="sm" 
+                  className="text-[10px] uppercase font-bold tracking-widest border-white/10"
+                >
+                  Log Weight
+                </Button>
               </div>
             </div>
             
@@ -195,13 +236,13 @@ export function Dashboard() {
           <Card className="glass p-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">Upcoming</h3>
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center">
+              <div className="flex items-center gap-4 group cursor-pointer" onClick={() => setIsPainOpen(true)}>
+                <div className="size-10 rounded-xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center group-hover:bg-orange-400/20 transition-colors">
                   <Flame className="size-5 text-orange-400" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold text-white">HIIT Mobility</div>
-                  <div className="text-xs text-muted-foreground">Tomorrow, 08:30 AM</div>
+                  <div className="text-sm font-semibold text-white">Log Recovery</div>
+                  <div className="text-xs text-muted-foreground">Feeling pain? Update status.</div>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground" />
               </div>
@@ -219,6 +260,20 @@ export function Dashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Modals */}
+      <NutritionLogModal 
+        isOpen={isNutritionOpen} 
+        onClose={() => setIsNutritionOpen(false)} 
+      />
+      <PainLogModal 
+        isOpen={isPainOpen} 
+        onClose={() => setIsPainOpen(false)} 
+      />
+      <WeightLogModal 
+        isOpen={isWeightOpen} 
+        onClose={() => setIsWeightOpen(false)} 
+      />
     </div>
   );
 }
