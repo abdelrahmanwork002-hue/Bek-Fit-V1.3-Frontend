@@ -83,6 +83,15 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
     ));
   };
 
+  const getRPEText = (rpe: number) => {
+    if (rpe <= 2) return 'Very Light';
+    if (rpe <= 4) return 'Light';
+    if (rpe <= 6) return 'Moderate';
+    if (rpe <= 8) return 'Hard (1-2 reps left)';
+    if (rpe === 9) return 'Near Max (0-1 left)';
+    return 'Max Effort';
+  };
+
   const updateSet = (idx: number, updates: Partial<SetLog>) => {
     setSets(prev => prev.map((s, i) => i === idx ? { ...s, ...updates } : s));
   };
@@ -193,14 +202,17 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                 <div className="col-span-1 font-bold text-muted-foreground">{idx + 1}</div>
                 
                 <div className="col-span-3">
-                  <input
-                    type="number"
-                    value={set.weight || ''}
-                    disabled={set.status === 'skipped'}
-                    onChange={(e) => updateSet(idx, { weight: parseFloat(e.target.value) })}
-                    placeholder="kg"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-colors disabled:opacity-30"
-                  />
+                  <div className="relative group">
+                    <input
+                      type="number"
+                      value={set.weight || ''}
+                      disabled={set.status === 'skipped'}
+                      onChange={(e) => updateSet(idx, { weight: parseFloat(e.target.value) })}
+                      placeholder="0.0"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg p-2 pr-8 text-sm text-center focus:border-primary outline-none transition-all disabled:opacity-30 focus:bg-primary/5"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-muted-foreground uppercase">kg</span>
+                  </div>
                 </div>
 
                 <div className="col-span-3">
@@ -210,22 +222,27 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                     disabled={set.status === 'skipped'}
                     onChange={(e) => updateSet(idx, { reps: parseInt(e.target.value) })}
                     placeholder="0"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-colors disabled:opacity-30"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-all disabled:opacity-30 focus:bg-primary/5"
                   />
                 </div>
 
-                <div className="col-span-3 flex items-center gap-2">
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    step="1"
-                    value={set.rpe}
-                    disabled={set.status === 'skipped'}
-                    onChange={(e) => updateSet(idx, { rpe: parseInt(e.target.value) })}
-                    className="flex-1 accent-primary h-1 bg-white/10 rounded-lg appearance-none cursor-pointer disabled:opacity-30"
-                  />
-                  <span className="text-[10px] font-bold text-amber-400 w-3">{set.rpe}</span>
+                <div className="col-span-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      step="1"
+                      value={set.rpe}
+                      disabled={set.status === 'skipped'}
+                      onChange={(e) => updateSet(idx, { rpe: parseInt(e.target.value) })}
+                      className="flex-1 accent-primary h-1 bg-white/10 rounded-lg appearance-none cursor-pointer disabled:opacity-30"
+                    />
+                    <span className="text-[10px] font-bold text-amber-400 w-3">{set.rpe}</span>
+                  </div>
+                  <div className="text-[8px] text-muted-foreground font-medium truncate">
+                    {getRPEText(set.rpe)}
+                  </div>
                 </div>
 
                 <div className="col-span-2 flex justify-end gap-2">
