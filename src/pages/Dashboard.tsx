@@ -17,12 +17,12 @@ export function Dashboard() {
   const [isPainOpen, setIsPainOpen] = useState(false);
   const [isWeightOpen, setIsWeightOpen] = useState(false);
 
-  const workout = [
+  const [workout, setWorkout] = useState([
     { name: 'Neck Rotations', duration: '60s', type: 'Mobility', completed: true },
     { name: 'Cat-Cow Stretch', reps: '15 reps', type: 'Yoga', completed: true },
     { name: 'Scapula Pushups', reps: '10 reps', type: 'Calisthenics', completed: false },
     { name: 'Squat ISO Hold', duration: '45s', type: 'Strength', completed: false },
-  ];
+  ]);
 
   return (
     <div className="space-y-8 animate-in fade-in transition-all duration-700">
@@ -111,9 +111,9 @@ export function Dashboard() {
                         size="sm" 
                         className="text-muted-foreground hover:text-white"
                         onClick={() => {
-                          const updated = [...workout];
-                          updated[idx].completed = true;
-                          // In a real app, this would call the API
+                          setWorkout(prev => prev.map((ex, i) => 
+                            i === idx ? { ...ex, completed: true } : ex
+                          ));
                         }}
                       >
                         Log
@@ -145,7 +145,7 @@ export function Dashboard() {
                 onClick={() => setIsNutritionOpen(true)}
                 variant="ghost" 
                 size="sm" 
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20"
+                className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-black/40 hover:bg-black/60 z-10"
               >
                 Log
               </Button>
@@ -162,7 +162,7 @@ export function Dashboard() {
                 onClick={() => setIsNutritionOpen(true)}
                 variant="ghost" 
                 size="sm" 
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20"
+                className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity bg-black/40 hover:bg-black/60 z-10"
               >
                 Log
               </Button>
