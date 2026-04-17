@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import type { ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Bot, Sparkles, Send, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuth } from '@clerk/clerk-react';
@@ -28,12 +27,8 @@ export function AISupportModal({ isOpen, onClose, user }: AISupportModalProps) {
       setApiToken(token);
       
       const response = await api.post('/api/ai/draft-ticket', {
+        userId: user.id,
         userProblem: problem,
-        userContext: {
-          userName: user.fullName,
-          userRole: user.role,
-          lastActive: user.updatedAt
-        }
       });
       
       setDraft(response.data.draft);
@@ -44,29 +39,31 @@ export function AISupportModal({ isOpen, onClose, user }: AISupportModalProps) {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] glass border-white/10">
-        <DialogHeader>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="w-full max-w-[600px] glass border border-white/10 rounded-xl p-6 shadow-2xl relative">
+        <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="size-8 rounded-lg bg-primary/20 flex items-center justify-center">
               <Bot className="size-5 text-primary" />
             </div>
-            <DialogTitle>AI Support Agent</DialogTitle>
+            <h2 className="text-xl font-semibold text-white">AI Support Agent</h2>
           </div>
-          <DialogDescription>
-            Draft a professional response for <strong>{user?.fullName}</strong> using GPT-4.
-          </DialogDescription>
-        </DialogHeader>
+          <p className="text-sm text-gray-400">
+            Draft a professional response for <strong className="text-white">{user?.fullName}</strong> using GPT-4.
+          </p>
+        </div>
 
         <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">User Problem Description</label>
-            <Textarea 
+            <label className="text-sm font-medium text-gray-300 uppercase tracking-wider">User Problem Description</label>
+            <textarea 
               placeholder="Describe the user's issue here..."
-              className="bg-black/20 border-white/10 min-h-[100px]"
+              className="w-full bg-black/20 border border-white/10 min-h-[100px] rounded-md p-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-primary/50 transition-colors"
               value={problem}
-              onChange={(e) => setProblem(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setProblem(e.target.value)}
             />
           </div>
 
@@ -94,14 +91,14 @@ export function AISupportModal({ isOpen, onClose, user }: AISupportModalProps) {
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-white/10">Cancel</Button>
+        <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-white/10">
+          <Button variant="outline" onClick={onClose} className="border-white/20 text-gray-300 hover:text-white">Cancel</Button>
           <Button disabled={!draft} className="gap-2">
             <Send className="size-4" />
             Use this Response
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 }
