@@ -11,6 +11,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { UserManagement } from './pages/admin/UserManagement';
 import { AISettings } from './pages/admin/AISettings';
 import { ExerciseLibrary } from './pages/admin/ExerciseLibrary';
+import CoachPlanBuilder from './pages/admin/CoachPlanBuilder';
 
 const ComingSoon = ({ label }: { label: string }) => (
   <div className="flex items-center justify-center h-64">
@@ -41,7 +42,7 @@ export const router = createBrowserRouter([
       { index: true, element: <AdminDashboard /> },
       { path: 'users', element: <UserManagement /> },
       { path: 'exercises', element: <ExerciseLibrary /> },
-      { path: 'plans', element: <ComingSoon label="Coach Plan Builder" /> },
+      { path: 'plans', element: <CoachPlanBuilder /> },
       { path: 'ai-settings', element: <AISettings /> },
     ],
   },
