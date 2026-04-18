@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap, Target, TrendingUp, Lightbulb } from 'lucide-react';
+import { Play, CheckCircle2, Flame, Info, ChevronRight, Zap, Target, TrendingUp, Lightbulb, RefreshCw, X, Search } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
 import { useUser } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,8 @@ export function Dashboard() {
   const [isPainOpen, setIsPainOpen] = useState(false);
   const [isWeightOpen, setIsWeightOpen] = useState(false);
   const [activeExercise, setActiveExercise] = useState<any>(null);
+  const [isExExploreOpen, setIsExExploreOpen] = useState(false);
+  const [exSearchQuery, setExSearchQuery] = useState('');
 
   const [workout, setWorkout] = useState([
     { 
@@ -72,6 +74,23 @@ export function Dashboard() {
       thumbnail: 'https://images.unsplash.com/photo-1574680096145-d05b474e2158?auto=format&fit=crop&w=100&q=80'
     },
   ]);
+
+  const exerciseLibrary = [
+    { id: 'lib1', name: 'Scapula Pullups', type: 'Calisthenics', target: 'Scapula, Back', sets: 3, reps: '10 reps', rpe: 6, rest: '60s', thumbnail: 'https://images.unsplash.com/photo-1598971639058-aba7c52e9c73?auto=format&fit=crop&w=100&q=80' },
+    { id: 'lib2', name: 'Wall Slides', type: 'Mobility', target: 'Shoulders, Posture', sets: 2, reps: '12 reps', rpe: 2, rest: '30s', thumbnail: 'https://images.unsplash.com/photo-1514516369414-78177d40e990?auto=format&fit=crop&w=100&q=80' },
+    { id: 'lib3', name: 'Plank Hold', type: 'Core', target: 'Abs, Stability', sets: 3, reps: '45s', rpe: 5, rest: '45s', thumbnail: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=100&q=80' },
+    { id: 'lib4', name: 'Dead Bug', type: 'Core', target: 'Deep Core', sets: 3, reps: '12 reps', rpe: 3, rest: '45s', thumbnail: 'https://images.unsplash.com/photo-1517433662323-146316ec711d?auto=format&fit=crop&w=100&q=80' },
+  ];
+
+  const handleExerciseSwap = (newEx: any) => {
+    if (activeExercise) {
+      setWorkout(prev => prev.map((ex, i) => 
+        i === activeExercise.idx ? { ...newEx, completed: false } : ex
+      ));
+      setActiveExercise(null);
+      setIsExExploreOpen(false);
+    }
+  };
 
   const handleLogNutrition = async (name: string, macros: any) => {
     try {
@@ -175,18 +194,23 @@ export function Dashboard() {
                   <Zap className="size-5 text-primary" />
                   <CardTitle>{t('routine')}</CardTitle>
                 </div>
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                  5 Min Session
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" size="sm" className="hidden md:flex bg-white/5 border-white/10 text-xs" onClick={() => setIsExExploreOpen(true)}>
+                    <RefreshCw className="size-3 mr-2" /> Substitution Library
+                  </Button>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 whitespace-nowrap">
+                    5 Min Session
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
               {workout.map((ex, idx) => (
-                <div key={idx} className="flex flex-col p-6 border-b border-white/5 hover:bg-white/5 transition-colors">
+                <div key={idx} className="flex flex-col p-6 border-b border-white/5 hover:bg-white/5 transition-colors group">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-6">
-                      <div className="size-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden relative group">
-                        <img src={ex.thumbnail} alt={ex.name} className="size-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
+                      <div className="size-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden relative group/img">
+                        <img src={ex.thumbnail} alt={ex.name} className="size-full object-cover opacity-50 group-hover/img:opacity-100 transition-opacity" />
                         {ex.completed && (
                           <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[1px]">
                             <CheckCircle2 className="size-8 text-white drop-shadow-lg" />
@@ -202,18 +226,28 @@ export function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                       {ex.completed ? (
                         <span className="text-[10px] font-black tracking-tighter text-primary px-3 py-1 bg-primary/10 rounded-full border border-primary/20 uppercase">Completed</span>
                       ) : (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-white bg-primary/20 hover:bg-primary hover:text-white transition-all rounded-lg font-bold"
-                          onClick={() => setActiveExercise({ ...ex, idx })}
-                        >
-                          Log Session
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="bg-white/5 hover:bg-white/10 text-white rounded-lg font-bold transition-all px-3"
+                            onClick={() => { setActiveExercise({ ...ex, idx }); setIsExExploreOpen(true); }}
+                          >
+                           <RefreshCw className="size-3 mr-1.5" /> Swap
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-white bg-primary/20 hover:bg-primary hover:text-white transition-all rounded-lg font-bold px-4"
+                            onClick={() => setActiveExercise({ ...ex, idx })}
+                          >
+                            Log
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -246,7 +280,7 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Nutrition Summary (Story 7) */}
+          {/* Nutrition Summary */}
           <div className="grid grid-cols-2 gap-4">
             <Card className="glass p-6 space-y-4 relative group">
               <div className="flex items-center justify-between">
@@ -284,7 +318,7 @@ export function Dashboard() {
             </Card>
           </div>
 
-          {/* Weekly Overview (Mock Chart) */}
+          {/* Weekly Overview */}
           <Card className="glass p-6 border-white/5">
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -329,7 +363,6 @@ export function Dashboard() {
 
         {/* Sidebar Column */}
         <div className="space-y-6">
-          {/* Tip of the Day (Story 18) */}
           <Card className="bg-gradient-to-br from-primary/20 to-emerald-400/20 border-primary/20 relative overflow-hidden group">
             <CardHeader>
               <div className="size-10 rounded-full bg-white/10 flex items-center justify-center mb-2">
@@ -347,7 +380,6 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
           <Card className="glass p-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">Upcoming</h3>
             <div className="space-y-4">
@@ -376,9 +408,60 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* Exercise Substitution Modal (Story 13 & 16) */}
+      {isExExploreOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl bg-[#0F1115] border border-white/10 rounded-3xl shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="p-8 border-b border-white/5 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Exercise Library</h2>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {activeExercise ? `Replacing "${activeExercise.name}" with a better matching movement.` : 'Browse the full movement catalog.'}
+                  </p>
+                </div>
+                <button onClick={() => setIsExExploreOpen(false)} className="p-3 hover:bg-white/5 rounded-full transition-colors">
+                  <X className="size-6 text-white" />
+                </button>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <input 
+                  type="text" 
+                  placeholder="Search exercises, targets, or types..." 
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  value={exSearchQuery}
+                  onChange={(e) => setExSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-8 space-y-4">
+              {exerciseLibrary.filter(ex => ex.name.toLowerCase().includes(exSearchQuery.toLowerCase()) || ex.target.toLowerCase().includes(exSearchQuery.toLowerCase())).map((ex) => (
+                <div key={ex.id} className="p-5 bg-white/[0.03] rounded-2xl border border-white/5 flex items-center justify-between group hover:border-primary/50 transition-all cursor-pointer">
+                   <div className="flex items-center gap-6">
+                      <div className="size-16 rounded-xl overflow-hidden border border-white/10">
+                        <img src={ex.thumbnail} className="size-full object-cover" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase text-primary mb-1">{ex.type}</div>
+                        <h4 className="font-bold text-white text-lg group-hover:text-primary transition-colors">{ex.name}</h4>
+                        <p className="text-xs text-muted-foreground">Target: {ex.target}</p>
+                      </div>
+                   </div>
+                   <Button onClick={() => handleExerciseSwap(ex)} className="opacity-0 group-hover:opacity-100 bg-primary text-white font-bold">
+                     Swap
+                   </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <ExerciseLogModal 
         exercise={activeExercise} 
-        isOpen={!!activeExercise} 
+        isOpen={!!activeExercise && !isExExploreOpen} 
         onClose={() => setActiveExercise(null)}
         onSave={async (logs) => {
           try {
@@ -400,14 +483,8 @@ export function Dashboard() {
         onClose={() => setIsNutritionOpen(false)} 
         onSave={handleLogNutrition}
       />
-      <PainLogModal 
-        isOpen={isPainOpen} 
-        onClose={() => setIsPainOpen(false)} 
-      />
-      <WeightLogModal 
-        isOpen={isWeightOpen} 
-        onClose={() => setIsWeightOpen(false)} 
-      />
+      <PainLogModal isOpen={isPainOpen} onClose={() => setIsPainOpen(false)} />
+      <WeightLogModal isOpen={isWeightOpen} onClose={() => setIsWeightOpen(false)} />
     </div>
   );
 }
