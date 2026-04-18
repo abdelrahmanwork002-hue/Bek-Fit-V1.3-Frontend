@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router';
-import { Activity, Calendar, LayoutDashboard, User, Utensils, Lightbulb, Shield, Menu, X } from 'lucide-react';
+import { Activity, Calendar, LayoutDashboard, User, Utensils, Lightbulb, Shield, Menu, X, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '../ThemeToggle';
 import { LanguageToggle } from '../LanguageToggle';
@@ -26,6 +26,7 @@ export function AppLayout() {
     { icon: LayoutDashboard, label: t('home'), path: '/app' },
     { icon: Calendar, label: t('progress'), path: '/app/progress' },
     { icon: Utensils, label: t('nutrition'), path: '/app/nutrition' },
+    { icon: Brain, label: 'Insights', path: '/app/insights' },
     { icon: Lightbulb, label: t('tips'), path: '/app/tips' },
     { icon: User, label: t('profile'), path: '/app/profile' },
   ];

@@ -4,6 +4,7 @@ import { Onboarding } from './pages/Onboarding';
 import { Dashboard } from './pages/Dashboard';
 import { Progress } from './pages/Progress';
 import { Nutrition } from './pages/Nutrition';
+import { Insights } from './pages/Insights';
 import { AppLayout } from './components/layouts/AppLayout';
 import { AdminLayout } from './components/layouts/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: 'routines', element: <Dashboard /> },
       { path: 'progress', element: <Progress /> },
       { path: 'nutrition', element: <Nutrition /> },
+      { path: 'insights', element: <Insights /> },
       { path: 'tips', element: <ComingSoon label="Daily Vitality Tips" /> },
       { path: 'profile', element: <ComingSoon label="Profile Settings" /> },
     ],
