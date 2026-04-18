@@ -23,6 +23,13 @@ export interface NutritionLog {
   timestamp: string;
 }
 
+export interface PainLog {
+  bodyPart: string;
+  painLevel: number;
+  notes: string;
+  timestamp: string;
+}
+
 export const logService = {
   saveExerciseLog: async (log: ExerciseLog) => {
     const response = await api.post('/api/logs/routine', log);
@@ -35,7 +42,12 @@ export const logService = {
   },
 
   saveWeightLog: async (weight: number, date: string) => {
-    const response = await api.post('/api/logs/weight', { weight, date });
+    const response = await api.post('/api/logs/weight', { weightKg: weight, date });
+    return response.data;
+  },
+
+  savePainLog: async (log: PainLog) => {
+    const response = await api.post('/api/logs/pain', log);
     return response.data;
   },
 

@@ -463,6 +463,7 @@ export function Dashboard() {
         exercise={activeExercise} 
         isOpen={!!activeExercise && !isExExploreOpen} 
         onClose={() => setActiveExercise(null)}
+        onSwap={() => setIsExExploreOpen(true)}
         onSave={async (logs) => {
           try {
             await logService.saveExerciseLog({

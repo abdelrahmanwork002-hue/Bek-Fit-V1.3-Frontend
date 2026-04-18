@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { X, Loader2, TrendingUp } from 'lucide-react';
-import api from '@/lib/api';
-import { useAuth } from '@clerk/clerk-react';
-import { setApiToken } from '@/lib/api';
+import { logService } from '@/services/logService';
 
 interface WeightLogModalProps {
   isOpen: boolean;
@@ -11,7 +9,6 @@ interface WeightLogModalProps {
 }
 
 export function WeightLogModal({ isOpen, onClose, onSuccess }: WeightLogModalProps) {
-  const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [weight, setWeight] = useState('');
 
@@ -20,11 +17,7 @@ export function WeightLogModal({ isOpen, onClose, onSuccess }: WeightLogModalPro
     if (!weight) return;
     setLoading(true);
     try {
-      const token = await getToken();
-      setApiToken(token);
-      await api.post('/api/logs/weight', {
-        weightKg: parseFloat(weight),
-      });
+      await logService.saveWeightLog(parseFloat(weight), new Date().toISOString());
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -37,14 +30,14 @@ export function WeightLogModal({ isOpen, onClose, onSuccess }: WeightLogModalPro
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="w-full max-w-sm bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-white/5">
           <div className="flex items-center gap-3">
             <div className="size-9 rounded-xl bg-blue-500/20 flex items-center justify-center">
               <TrendingUp className="size-5 text-blue-400" />
             </div>
-            <h2 className="font-bold text-white">Log Progress (Weight)</h2>
+            <h2 className="font-bold text-white">Log Weight</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
             <X className="size-4 text-muted-foreground" />
@@ -72,7 +65,7 @@ export function WeightLogModal({ isOpen, onClose, onSuccess }: WeightLogModalPro
               className="w-full bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : null}
-              Save Weight
+              Save Progress
             </button>
           </div>
         </form>

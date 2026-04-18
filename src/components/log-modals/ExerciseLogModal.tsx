@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, Play, Pause, RotateCcw, Save, Trash2, Plus } from 'lucide-react';
+import { X, Loader2, Play, Pause, RotateCcw, Save, Trash2, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -15,9 +15,10 @@ interface ExerciseLogModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (logs: SetLog[]) => void;
+  onSwap?: () => void;
 }
 
-export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: ExerciseLogModalProps) {
+export function ExerciseLogModal({ exercise, isOpen, onClose, onSave, onSwap }: ExerciseLogModalProps) {
   const [sets, setSets] = useState<SetLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
@@ -68,7 +69,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
         ? { ...s, status: s.status === 'completed' ? 'pending' : ('completed' as const) } 
         : s
     ));
-    // Start rest timer if we just completed a set
     if (sets[idx].status !== 'completed') {
       setTimer(0);
       setIsTimerRunning(true);
@@ -115,15 +115,25 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-            <X className="size-5 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onSwap && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="bg-white/5 hover:bg-white/10 text-white rounded-lg font-bold"
+                onClick={onSwap}
+              >
+                <RefreshCw className="size-4 mr-2" /> Swap
+              </Button>
+            )}
+            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+              <X className="size-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {/* Action Row: Hold Timer & Rest Timer */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Hold Timer (New SRS Feature) */}
             <div className="relative bg-emerald-500/5 rounded-2xl p-4 border border-emerald-500/10 flex flex-col items-center justify-center min-h-[140px] group overflow-hidden">
               <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10 text-center">
@@ -148,11 +158,9 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                   </Button>
                 </div>
               </div>
-              {/* Subtle Progress Ring (Decorative) */}
               <div className="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-1000" style={{ width: `${(holdTimer / (parseInt(exercise.duration) || 1)) * 100}%` }} />
             </div>
 
-            {/* Rest Timer */}
             <div className="relative bg-blue-500/5 rounded-2xl p-4 border border-blue-500/10 flex flex-col items-center justify-center min-h-[140px] group overflow-hidden">
               <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10 text-center">
@@ -180,7 +188,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
             </div>
           </div>
 
-          {/* Logging Table */}
           <div className="space-y-4">
             <div className="grid grid-cols-12 gap-4 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               <div className="col-span-1">Set</div>
@@ -200,7 +207,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                 }`}
               >
                 <div className="col-span-1 font-bold text-muted-foreground">{idx + 1}</div>
-                
                 <div className="col-span-3">
                   <div className="relative group">
                     <input
@@ -214,7 +220,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-muted-foreground uppercase">kg</span>
                   </div>
                 </div>
-
                 <div className="col-span-3">
                   <input
                     type="number"
@@ -225,7 +230,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                     className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm text-center focus:border-primary outline-none transition-all disabled:opacity-30 focus:bg-primary/5"
                   />
                 </div>
-
                 <div className="col-span-3 space-y-1">
                   <div className="flex items-center gap-2">
                     <input
@@ -244,7 +248,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                     {getRPEText(set.rpe)}
                   </div>
                 </div>
-
                 <div className="col-span-2 flex justify-end gap-2">
                   <button
                     onClick={() => skipSet(idx)}
@@ -253,7 +256,6 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave }: Exercise
                         ? 'bg-amber-500 border-amber-500 text-white'
                         : 'border-white/5 bg-white/5 text-muted-foreground hover:bg-amber-500/20 hover:text-amber-400'
                     }`}
-                    title="Mark as Skipped"
                   >
                     <Trash2 className="size-4" />
                   </button>

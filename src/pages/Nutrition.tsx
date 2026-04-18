@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Utensils, Clock, Flame, ChevronRight, CheckCircle2, Info, RefreshCw, X, Search, Filter } from 'lucide-react';
+import { Utensils, Clock, Flame, ChevronRight, CheckCircle2, Info, RefreshCw, X, Search, Filter, Leaf, Dumbbell, WheatOff } from 'lucide-react';
 import { NutritionLogModal } from '@/components/log-modals/NutritionLogModal';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ export function Nutrition() {
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
   const [mealToSwapId, setMealToSwapId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const [meals, setMeals] = useState([
     {
@@ -65,20 +66,22 @@ export function Nutrition() {
   ]);
 
   const substitutionLibrary = [
-    { id: 'sub1', name: 'Oatmeal with Almonds', calories: 420, protein: 15, carbs: 50, fats: 12, type: 'Breakfast', image: 'https://images.unsplash.com/photo-1517433662323-146316ec711d?auto=format&fit=crop&w=400&q=80', instructions: 'Boil oats in milk. Top with raw almonds.' },
-    { id: 'sub2', name: 'Turkey & Swiss Wrap', calories: 510, protein: 35, carbs: 45, fats: 18, type: 'Lunch', image: 'https://images.unsplash.com/photo-1548946522-4a313e8972a4?auto=format&fit=crop&w=400&q=80', instructions: 'Wrap sliced turkey and swiss cheese in a whole wheat tortilla.' },
-    { id: 'sub3', name: 'Grilled Steak & Greens', calories: 620, protein: 55, carbs: 12, fats: 38, type: 'Dinner', image: 'https://images.unsplash.com/photo-1514516369414-78177d40e990?auto=format&fit=crop&w=400&q=80', instructions: 'Grill steak to preference. Serve with fresh lettuce and spinach.' },
-    { id: 'sub4', name: 'Hummus & Carrots', calories: 180, protein: 8, carbs: 22, fats: 10, type: 'Snack', image: 'https://images.unsplash.com/photo-1541533375320-fed818ec0981?auto=format&fit=crop&w=400&q=80', instructions: 'Dip fresh baby carrots into 3 tbsp of hummus.' },
-    { id: 'sub5', name: 'Protein Pancakes', calories: 350, protein: 30, carbs: 40, fats: 8, type: 'Breakfast', image: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=400&q=80', instructions: 'Mix protein powder, oats, and egg whites. Cook on medium heat.' },
-    { id: 'sub6', name: 'Quinoa & Black Beans', calories: 440, protein: 18, carbs: 75, fats: 6, type: 'Lunch', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=400&q=80', instructions: 'Boil quinoa. Mix with canned black beans and salsa.' },
+    { id: 'sub1', name: 'Oatmeal with Almonds', calories: 420, protein: 15, carbs: 50, fats: 12, type: 'Breakfast', tags: ['Vegan', 'High Fiber'], image: 'https://images.unsplash.com/photo-1517433662323-146316ec711d?auto=format&fit=crop&w=400&q=80', instructions: 'Boil oats in milk. Top with raw almonds.' },
+    { id: 'sub2', name: 'Turkey & Swiss Wrap', calories: 510, protein: 35, carbs: 45, fats: 18, type: 'Lunch', tags: ['High Protein'], image: 'https://images.unsplash.com/photo-1548946522-4a313e8972a4?auto=format&fit=crop&w=400&q=80', instructions: 'Wrap sliced turkey and swiss cheese in a whole wheat tortilla.' },
+    { id: 'sub3', name: 'Grilled Steak & Greens', calories: 620, protein: 55, carbs: 12, fats: 38, type: 'Dinner', tags: ['Keto', 'High Protein'], image: 'https://images.unsplash.com/photo-1514516369414-78177d40e990?auto=format&fit=crop&w=400&q=80', instructions: 'Grill steak to preference. Serve with fresh lettuce and spinach.' },
+    { id: 'sub4', name: 'Hummus & Carrots', calories: 180, protein: 8, carbs: 22, fats: 10, type: 'Snack', tags: ['Vegan', 'Gluten Free'], image: 'https://images.unsplash.com/photo-1541533375320-fed818ec0981?auto=format&fit=crop&w=400&q=80', instructions: 'Dip fresh baby carrots into 3 tbsp of hummus.' },
+    { id: 'sub5', name: 'Protein Pancakes', calories: 350, protein: 30, carbs: 40, fats: 8, type: 'Breakfast', tags: ['High Protein'], image: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=400&q=80', instructions: 'Mix protein powder, oats, and egg whites. Cook on medium heat.' },
+    { id: 'sub6', name: 'Quinoa & Black Beans', calories: 440, protein: 18, carbs: 75, fats: 6, type: 'Lunch', tags: ['Vegan', 'Gluten Free'], image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=400&q=80', instructions: 'Boil quinoa. Mix with canned black beans and salsa.' },
   ];
 
   const mealToSwap = meals.find(m => m.id === mealToSwapId);
 
-  const filteredLibrary = substitutionLibrary.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredLibrary = substitutionLibrary.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.type.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = activeTag ? item.tags.includes(activeTag) : true;
+    return matchesSearch && matchesTag;
+  });
 
   const handleSwap = (replacementMeal: any) => {
     setMeals(prev => prev.map(m => 
@@ -180,7 +183,7 @@ export function Nutrition() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="bg-white/5 border-white/10 text-xs hover:bg-primary/20 hover:text-primary transition-all"
+                      className="bg-white/5 border-white/10 text-xs hover:bg-primary/20 hover:text-primary transition-all font-bold"
                       onClick={() => { setMealToSwapId(meal.id); setIsSwapModalOpen(true); }}
                     >
                       <RefreshCw className="size-3 mr-2" /> Swap
@@ -269,15 +272,34 @@ export function Nutrition() {
                 </button>
               </div>
 
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <input 
-                  type="text" 
-                  placeholder="Search meals or categories..." 
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <input 
+                    type="text" 
+                    placeholder="Search meals or categories..." 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {['High Protein', 'Vegan', 'Gluten Free', 'Keto', 'High Fiber'].map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all",
+                        activeTag === tag 
+                          ? "bg-primary border-primary text-white" 
+                          : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
+                      )}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             
@@ -299,7 +321,17 @@ export function Nutrition() {
                           {isMatch && <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[8px] h-4">Perfect Match</Badge>}
                         </div>
                         <h4 className="font-bold text-white text-lg group-hover:text-primary transition-colors">{meal.name}</h4>
-                        <div className="flex gap-4 mt-2 text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {meal.tags.map(t => (
+                            <span key={t} className="text-[8px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                              {t === 'Vegan' && <Leaf className="size-2 text-emerald-400" />}
+                              {t === 'High Protein' && <Dumbbell className="size-2 text-primary" />}
+                              {t === 'Gluten Free' && <WheatOff className="size-2 text-amber-400" />}
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex gap-4 mt-3 text-[10px] text-muted-foreground font-medium uppercase tracking-widest border-t border-white/5 pt-2">
                           <span>{meal.calories} kcal</span>
                           <span>P: {meal.protein}g</span>
                           <span>C: {meal.carbs}g</span>
@@ -321,7 +353,7 @@ export function Nutrition() {
               }) : (
                 <div className="text-center py-20">
                   <Utensils className="size-12 text-white/5 mx-auto mb-4" />
-                  <p className="text-muted-foreground">No meals found matching your search.</p>
+                  <p className="text-muted-foreground">No meals found matching your criteria.</p>
                 </div>
               )}
             </div>
