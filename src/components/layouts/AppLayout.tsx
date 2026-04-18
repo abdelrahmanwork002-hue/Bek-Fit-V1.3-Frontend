@@ -93,16 +93,6 @@ export function AppLayout() {
               })}
             </nav>
 
-            {/* Admin link */}
-            <div className="p-6">
-              <Link
-                to="/admin"
-                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-white transition-colors uppercase tracking-widest font-bold"
-              >
-                <Shield className="size-3" />
-                {t('admin')}
-              </Link>
-            </div>
           </aside>
 
           {/* Main */}
