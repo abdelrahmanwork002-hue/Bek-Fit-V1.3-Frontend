@@ -178,56 +178,107 @@ export function Progress() {
 
       {/* Selected Day Detail (Story 8.3) */}
       {selectedDay !== null && (
-        <Card className="glass border-white/5 p-8 animate-in slide-in-from-bottom duration-500">
-          <div className="flex items-center justify-between mb-8">
+        <Card className="glass border-white/5 p-8 animate-in slide-in-from-bottom duration-500 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedDay(null)} className="text-muted-foreground hover:text-white">✕</Button>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-6">
             <div className="flex items-center gap-4">
-              <div className="size-12 rounded-2xl bg-primary/20 flex items-center justify-center">
-                <CalendarIcon className="size-6 text-primary" />
+              <div className="size-14 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/20">
+                <CalendarIcon className="size-7 text-primary" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Daily Performance Log</h2>
-                <p className="text-sm text-muted-foreground">Details for April {selectedDay + 1}, 2026</p>
+                <h2 className="text-3xl font-bold text-white">Daily Performance Log</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">April {selectedDay + 1}, 2026</p>
+                  <span className="size-1 rounded-full bg-white/20" />
+                  <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-3">98% Adherence</Badge>
+                </div>
               </div>
             </div>
-            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">98% Adherence</Badge>
+            
+            <div className="flex gap-4 w-full md:w-auto">
+              <div className="flex-1 md:flex-none p-4 bg-white/5 rounded-2xl border border-white/5 text-center px-8">
+                <div className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Calories</div>
+                <div className="text-xl font-black text-white">1,840</div>
+              </div>
+              <div className="flex-1 md:flex-none p-4 bg-white/5 rounded-2xl border border-white/5 text-center px-8">
+                <div className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Protein</div>
+                <div className="text-xl font-black text-emerald-400">114g</div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Activity className="size-3" /> Training Log
-              </h3>
-              {[
-                { name: 'Neck Rotations', status: 'Completed', detail: '1 x 60s' },
-                { name: 'Cat-Cow Stretch', status: 'Completed', detail: '2 x 15 reps' },
-                { name: 'Scapula Pushups', status: 'Skipped', detail: 'Traps felt tight' },
-              ].map((log, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
-                  <span className="font-medium text-white">{log.name}</span>
-                  <div className="text-right">
-                    <div className={cn("text-xs font-bold", log.status === 'Completed' ? "text-emerald-400" : "text-amber-400")}>{log.status}</div>
-                    <div className="text-[10px] text-muted-foreground">{log.detail}</div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {/* Workout Detail Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
+                  <Activity className="size-4 text-primary" /> Workout Summary
+                </h3>
+                <span className="text-[10px] font-bold text-primary">55 MIN DURATION</span>
+              </div>
+              
+              <div className="space-y-3">
+                {[
+                  { name: 'Neck Rotations', status: 'Completed', detail: '1x60s • 2 RPE', icon: CheckCircle2 },
+                  { name: 'Cat-Cow Stretch', status: 'Completed', detail: '2x15 • 3 RPE', icon: CheckCircle2 },
+                  { name: 'Scapula Pushups', status: 'Skipped', detail: 'Traps tight', icon: X },
+                  { name: 'Squat ISO Hold', status: 'Completed', detail: '3x45s • 8 RPE', icon: CheckCircle2 },
+                ].map((log, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-white/[0.03] rounded-2xl border border-white/5 hover:bg-white/5 transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "size-8 rounded-full flex items-center justify-center border",
+                        log.status === 'Completed' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                      )}>
+                        <log.icon className="size-4" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{log.name}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">{log.detail}</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="size-4 text-white/5 group-hover:text-white/20 transition-colors" />
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Utensils className="size-3" /> Nutrition Log
-              </h3>
-              {[
-                { name: 'Breakfast', status: 'Logged', detail: 'Avocado Toast' },
-                { name: 'Lunch', status: 'Logged', detail: 'Chicken Quinoa' },
-                { name: 'Dinner', status: 'Pending', detail: 'Planned: Salmon' },
-              ].map((log, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
-                  <span className="font-medium text-white">{log.name}</span>
-                  <div className="text-right">
-                    <div className={cn("text-xs font-bold", log.status === 'Logged' ? "text-blue-400" : "text-muted-foreground")}>{log.status}</div>
-                    <div className="text-[10px] text-muted-foreground">{log.detail}</div>
+
+            {/* Nutrition Detail Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
+                  <Utensils className="size-4 text-emerald-400" /> Nutrition Log
+                </h3>
+                <span className="text-[10px] font-bold text-emerald-400">VITALLY ADHERENT</span>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  { name: 'Breakfast', status: 'Logged', detail: 'Avocado Toast & Eggs', cal: 450 },
+                  { name: 'Lunch', status: 'Logged', detail: 'Grilled Chicken Salad', cal: 580 },
+                  { name: 'Dinner', status: 'Logged', detail: 'Baked Salmon & Greens', cal: 610 },
+                  { name: 'Snacks', status: 'Logged', detail: 'Greek Yogurt & Nuts', cal: 200 },
+                ].map((log, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-white/[0.03] rounded-2xl border border-white/5 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="size-8 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                        <Utensils className="size-4" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white">{log.name}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">{log.detail}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-bold text-white">{log.cal}</div>
+                      <div className="text-[8px] text-muted-foreground font-medium uppercase tracking-widest text-emerald-400">kcal</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </Card>
