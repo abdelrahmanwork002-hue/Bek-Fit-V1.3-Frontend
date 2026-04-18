@@ -103,9 +103,9 @@ export function EditExerciseModal({ isOpen, onClose, exercise }: ExerciseModalPr
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Required Equipment</label>
             <div className="flex gap-2 mb-4 flex-wrap">
-              {formData.equipment.map((eq, i) => (
+              {formData.equipment.map((eq: string, i: number) => (
                 <Badge key={i} className="bg-primary/20 text-primary border-primary/10 gap-2 px-3 py-1">
-                  {eq} <X className="size-3 cursor-pointer" onClick={() => setFormData({ ...formData, equipment: formData.equipment.filter((_, idx) => idx !== i) })}/>
+                  {eq} <X className="size-3 cursor-pointer" onClick={() => setFormData({ ...formData, equipment: formData.equipment.filter((_: any, idx: number) => idx !== i) })}/>
                 </Badge>
               ))}
             </div>

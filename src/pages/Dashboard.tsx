@@ -482,7 +482,10 @@ export function Dashboard() {
       <NutritionLogModal 
         isOpen={isNutritionOpen} 
         onClose={() => setIsNutritionOpen(false)} 
-        onSave={handleLogNutrition}
+        onSuccess={() => {
+          setIsNutritionOpen(false);
+          // Optional: refresh data or show toast
+        }}
       />
       <PainLogModal isOpen={isPainOpen} onClose={() => setIsPainOpen(false)} />
       <WeightLogModal isOpen={isWeightOpen} onClose={() => setIsWeightOpen(false)} />

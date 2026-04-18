@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { Calendar as CalendarIcon, TrendingUp, Scale, Award, ArrowUpRight, ArrowDownRight, Plus, Download, ChevronRight, Activity, Utensils } from 'lucide-react';
+import { Search, Calendar as CalendarIcon, Filter, Download, ChevronRight, Activity, Flame, CheckCircle2, X, Info, TrendingUp, Scale, Award, ArrowUpRight, ArrowDownRight, Plus, Utensils } from 'lucide-react';
 import { WeightLogModal } from '@/components/log-modals/WeightLogModal';
 import { useLanguage } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
