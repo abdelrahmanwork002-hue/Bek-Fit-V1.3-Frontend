@@ -3,7 +3,7 @@ import {
   Users, Search, Filter, RefreshCw, UserPlus, MoreHorizontal, 
   Shield, Activity, Calendar, Mail, CheckCircle2, AlertCircle,
   TrendingUp, BarChart3, History, ArrowRight, UserCircle,
-  Lock, Unlock, ChevronDown, UserSquare2
+  Lock, Unlock, ChevronDown, UserSquare2, Zap, Trash2, X
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -304,12 +304,4 @@ export function UserManagement() {
       )}
     </div>
   );
-}
-
-// Additional helper icons missing from imports
-function Trash2(props: any) { return <X {...props} /> }
-function X(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-  )
 }
