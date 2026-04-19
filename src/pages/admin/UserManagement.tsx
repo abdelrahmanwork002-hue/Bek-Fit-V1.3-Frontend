@@ -35,7 +35,6 @@ export function UserManagement() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'coach' | 'admin'>('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const { data: users = [], isLoading, refetch } = useQuery<User[]>({
     queryKey: ['admin-users'],
@@ -43,16 +42,10 @@ export function UserManagement() {
       const { data } = await api.get('/api/users');
       return data;
     },
-    onError: (err: any) => {
-      console.error('[BekFit DEBUG] Provisioning Error:', err);
-      const url = err?.config?.url || 'unknown';
-      const base = err?.config?.baseURL || 'relative';
-      setError(`${err?.response?.data?.message || 'Failed to provision user.'} (Endpoint: ${base}${url})`);
-    }
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, ...data }: any) => {
+    mutationFn: async ({ id, ...data }: { id: string; [key: string]: any }) => {
       await api.patch(`/api/users/${id}`, data);
     },
     onSuccess: () => {
@@ -61,14 +54,14 @@ export function UserManagement() {
     }
   });
 
-  const filtered = users.filter(u => {
+  const filtered = (users as User[]).filter((u: User) => {
     const matchesSearch = (u.fullName || '').toLowerCase().includes(search.toLowerCase()) || 
                          u.email.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === 'all' || u.role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
-  const coaches = users.filter(u => u.role === 'coach');
+  const coaches = (users as User[]).filter((u: User) => u.role === 'coach');
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
@@ -123,7 +116,7 @@ export function UserManagement() {
             <div className="col-span-2 p-6 bg-[#0F1115] text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Assigned Coach</div>
             <div className="col-span-2 p-6 bg-[#0F1115] text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">Actions</div>
 
-            {filtered.map((user) => (
+            {filtered.map((user: User) => (
                <React.Fragment key={user.id}>
                   <div className="col-span-4 p-6 bg-background/40 flex items-center gap-5 hover:bg-white/[0.02] transition-colors cursor-pointer group" onClick={() => setSelectedUser(user)}>
                      <div className="size-14 rounded-2xl border border-white/10 overflow-hidden bg-white/5 flex items-center justify-center group-hover:border-primary/40 transition-colors">
@@ -173,7 +166,7 @@ export function UserManagement() {
                         <DropdownMenuTrigger asChild>
                            <Button variant="ghost" className="h-10 px-4 rounded-xl border border-white/5 hover:bg-white/5">
                               <div className="text-[10px] font-black uppercase text-muted-foreground">
-                                 {coaches.find(c => c.id === user.coachId)?.fullName || 'None Assigned'}
+                                 {coaches.find((c: User) => c.id === user.coachId)?.fullName || 'None Assigned'}
                               </div>
                               <ChevronDown className="size-3 ml-3 text-muted-foreground" />
                            </Button>
@@ -181,7 +174,7 @@ export function UserManagement() {
                         <DropdownMenuContent className="bg-[#0F1115] border-white/10 max-h-60 overflow-y-auto">
                            <DropdownMenuItem onClick={() => updateMutation.mutate({ id: user.id, coachId: null })}>Remove Assignment</DropdownMenuItem>
                            <DropdownMenuSeparator className="bg-white/5" />
-                           {coaches.map(coach => (
+                           {coaches.map((coach: User) => (
                               <DropdownMenuItem key={coach.id} onClick={() => updateMutation.mutate({ id: user.id, coachId: coach.id })}>
                                  {coach.fullName}
                               </DropdownMenuItem>
