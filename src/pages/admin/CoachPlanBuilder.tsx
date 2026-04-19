@@ -6,6 +6,7 @@ import { Plus, Search, Calendar, User, Dumbbell, Save, Copy, Trash2, Rocket, Lay
 import { cn } from '@/lib/utils';
 import { CreatePlanModal } from '@/components/admin/CreatePlanModal';
 import { LiveRoutineEditor } from '@/components/admin/LiveRoutineEditor';
+import { AthletePulseModal } from '@/components/admin/AthletePulseModal';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const mockTrackingData = [
@@ -20,6 +21,7 @@ export default function CoachPlanBuilder() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<{ id: string; name: string } | null>(null);
+  const [viewingAthlete, setViewingAthlete] = useState<{ id: string; name: string } | null>(null);
   
   const templates = [
     { id: '1', name: 'Elite Hypertrophy V4', type: 'Strength', users: 142, duration: '12 Weeks' },
@@ -182,7 +184,15 @@ export default function CoachPlanBuilder() {
                           {row.status}
                         </Badge>
                      </div>
-                     <div className="bg-background p-5 flex items-center justify-end">
+                     <div className="bg-background p-5 flex items-center justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-white/5 rounded-xl border border-white/5"
+                          onClick={() => setViewingAthlete({ id: row.athlete, name: row.athlete })}
+                        >
+                          View
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="sm" 
@@ -206,6 +216,18 @@ export default function CoachPlanBuilder() {
         onClose={() => setSelectedAthlete(null)}
         athleteId={selectedAthlete?.id || ''}
         athleteName={selectedAthlete?.name || ''}
+      />
+
+      <AthletePulseModal
+        isOpen={!!viewingAthlete}
+        onClose={() => setViewingAthlete(null)}
+        athleteId={viewingAthlete?.id || ''}
+        athleteName={viewingAthlete?.name || ''}
+        onAdjust={() => {
+           const athlete = viewingAthlete;
+           setViewingAthlete(null);
+           setSelectedAthlete(athlete);
+        }}
       />
     </div>
   );

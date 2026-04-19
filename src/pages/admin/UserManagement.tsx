@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import api, { setApiToken } from '@/lib/api';
-import { Sparkles, ShieldCheck, User, Search, MoreVertical, Ban, CheckCircle2, Eye, ShieldAlert, MessageSquare, Mail } from 'lucide-react';
+import { Sparkles, ShieldCheck, User, Search, MoreVertical, Ban, CheckCircle2, Eye, ShieldAlert, MessageSquare, Mail, RefreshCcw, PlusCircle } from 'lucide-react';
 import { AISupportModal } from '@/components/admin/AISupportModal';
 import { UserAnalyticsModal } from '@/components/admin/UserAnalyticsModal';
 import { AddUserModal } from '@/components/admin/AddUserModal';
@@ -83,6 +83,14 @@ export function UserManagement() {
           <p className="text-muted-foreground mt-1">Control access levels, monitor adherence, and manage the platform community.</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant="outline"
+            size="icon"
+            className="border-white/10 bg-white/5 text-muted-foreground hover:text-white rounded-xl"
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
+          >
+            <RefreshCcw className="size-4" />
+          </Button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <input
@@ -195,6 +203,20 @@ export function UserManagement() {
                   <Sparkles className="size-3 group-hover/ai:animate-pulse" />
                   <span className="ml-2 hidden lg:inline">AI Draft</span>
                 </Button>
+
+                {user.role === 'user' && (
+                  <Button 
+                    size="sm"
+                    className="bg-[#4fb6b2]/10 text-[#4fb6b2] border border-[#4fb6b2]/20 hover:bg-[#4fb6b2] transition-all font-bold"
+                    onClick={() => {
+                        window.location.href = `/admin/plans?targetUser=${user.id}`;
+                    }}
+                  >
+                    <PlusCircle className="size-3 mr-2" />
+                    <span className="hidden lg:inline">Create Plan</span>
+                  </Button>
+                )}
+
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
