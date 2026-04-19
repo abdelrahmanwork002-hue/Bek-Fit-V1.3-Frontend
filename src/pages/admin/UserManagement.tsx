@@ -42,9 +42,16 @@ export function UserManagement() {
   const { data: users = [], isLoading } = useQuery<UserRecord[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data } = await api.get('/api/users');
-      // Mocking some statuses for visual demonstration if not present
-      return data.map((u: any) => ({ ...u, status: u.status || 'active' }));
+      console.log('[DEBUG] Fetching users from /api/users...');
+      try {
+        const { data } = await api.get('/api/users');
+        console.log('[DEBUG] Users Received:', data);
+        // Mocking some statuses for visual demonstration if not present
+        return data.map((u: any) => ({ ...u, status: u.status || 'active' }));
+      } catch (err) {
+        console.error('[DEBUG] Fetch Failed:', err);
+        throw err;
+      }
     },
   });
 

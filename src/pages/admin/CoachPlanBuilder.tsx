@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Calendar, User, Dumbbell, Save, Copy, Trash2, Rocket, LayoutGrid, List, Activity, TrendingUp, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CreatePlanModal } from '@/components/admin/CreatePlanModal';
+import { LiveRoutineEditor } from '@/components/admin/LiveRoutineEditor';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const mockTrackingData = [
@@ -18,6 +19,7 @@ export default function CoachPlanBuilder() {
   const [activeTab, setActiveTab] = useState<'templates' | 'tracking'>('templates');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedAthlete, setSelectedAthlete] = useState<{ id: string; name: string } | null>(null);
   
   const templates = [
     { id: '1', name: 'Elite Hypertrophy V4', type: 'Strength', users: 142, duration: '12 Weeks' },
@@ -181,7 +183,14 @@ export default function CoachPlanBuilder() {
                         </Badge>
                      </div>
                      <div className="bg-background p-5 flex items-center justify-end">
-                        <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 rounded-xl">Adjust</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 rounded-xl"
+                          onClick={() => setSelectedAthlete({ id: row.athlete, name: row.athlete })}
+                        >
+                          Adjust
+                        </Button>
                      </div>
                    </React.Fragment>
                  ))}
@@ -191,6 +200,13 @@ export default function CoachPlanBuilder() {
       )}
 
       <CreatePlanModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
+      
+      <LiveRoutineEditor
+        isOpen={!!selectedAthlete}
+        onClose={() => setSelectedAthlete(null)}
+        athleteId={selectedAthlete?.id || ''}
+        athleteName={selectedAthlete?.name || ''}
+      />
     </div>
   );
 }
