@@ -35,12 +35,19 @@ export function UserManagement() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'coach' | 'admin'>('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: users = [], isLoading, refetch } = useQuery<User[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const { data } = await api.get('/api/users');
       return data;
+    },
+    onError: (err: any) => {
+      console.error('[BekFit DEBUG] Provisioning Error:', err);
+      const url = err?.config?.url || 'unknown';
+      const base = err?.config?.baseURL || 'relative';
+      setError(`${err?.response?.data?.message || 'Failed to provision user.'} (Endpoint: ${base}${url})`);
     }
   });
 
