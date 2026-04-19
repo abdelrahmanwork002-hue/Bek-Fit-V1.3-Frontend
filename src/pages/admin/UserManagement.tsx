@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { AddMemberModal } from '@/components/admin/AddMemberModal';
 
 interface User {
   id: string;
@@ -31,6 +32,7 @@ interface User {
 export function UserManagement() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'coach' | 'admin'>('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -73,8 +75,8 @@ export function UserManagement() {
            <Button onClick={() => refetch()} variant="ghost" size="icon" className="size-12 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:text-primary transition-all">
               <RefreshCw className={cn("size-5", isLoading && "animate-spin")} />
            </Button>
-           <Button className="bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30 px-8 h-12 rounded-2xl font-black uppercase tracking-widest italic">
-              <UserPlus className="size-5 mr-3" /> Invite New Member
+           <Button onClick={() => setIsAddOpen(true)} className="bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30 px-8 h-12 rounded-2xl font-black uppercase tracking-widest italic">
+              <UserPlus className="size-5 mr-3" /> Authorize New Member
            </Button>
         </div>
       </div>
@@ -302,6 +304,8 @@ export function UserManagement() {
            </div>
         </div>
       )}
+
+      <AddMemberModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} />
     </div>
   );
 }
