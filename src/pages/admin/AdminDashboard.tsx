@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Users, Activity, Bot, TrendingUp, Calendar, AlertCircle, ShieldCheck, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from 'recharts';
 import { cn } from '@/lib/utils';
+import { OnboardingFunnel } from '@/components/admin/OnboardingFunnel';
 
 const engagementData = [
   { time: '00:00', users: 1200 },
@@ -98,6 +99,11 @@ export function AdminDashboard() {
             </ResponsiveContainer>
           </div>
         </Card>
+
+        {/* Onboarding Funnel */}
+        <div className="lg:col-span-1">
+           <OnboardingFunnel />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">

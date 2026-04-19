@@ -16,6 +16,8 @@ import { BlogManager } from './pages/admin/BlogManager';
 import { Blog } from './pages/Blog';
 import { Profile } from './pages/Profile';
 import CoachPlanBuilder from './pages/admin/CoachPlanBuilder';
+import SignInPage from './pages/auth/SignIn';
+import SignUpPage from './pages/auth/SignUp';
 
 const ComingSoon = ({ label }: { label: string }) => (
   <div className="flex items-center justify-center h-64">
@@ -26,6 +28,8 @@ const ComingSoon = ({ label }: { label: string }) => (
 export const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
   { path: '/onboarding', element: <Onboarding /> },
+  { path: '/sign-in/*', element: <SignInPage /> },
+  { path: '/sign-up/*', element: <SignUpPage /> },
   {
     path: '/app',
     element: <AppLayout />,
