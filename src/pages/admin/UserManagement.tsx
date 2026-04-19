@@ -6,6 +6,7 @@ import {
   Lock, Unlock, ChevronDown, UserSquare2, Zap, Trash2, X
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@clerk/clerk-react';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -30,6 +31,7 @@ interface User {
 }
 
 export function UserManagement() {
+  const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -39,14 +41,20 @@ export function UserManagement() {
   const { data: users = [], isLoading, refetch } = useQuery<User[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data } = await api.get('/api/users');
+      const token = await getToken();
+      const { data } = await api.get('/api/users', {
+         headers: { Authorization: `Bearer ${token}` }
+      });
       return data;
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; [key: string]: any }) => {
-      await api.patch(`/api/users/${id}`, data);
+      const token = await getToken();
+      await api.patch(`/api/users/${id}`, data, {
+         headers: { Authorization: `Bearer ${token}` }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
