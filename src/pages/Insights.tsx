@@ -5,26 +5,27 @@ import { Badge } from '@/components/ui/badge';
 import { Brain, Activity, ShieldAlert, TrendingUp, Zap, ChevronRight, BarChart3, Info } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 import { cn } from '@/lib/utils';
-
-const adherenceData = [
-  { day: 'Mon', score: 85 },
-  { day: 'Tue', score: 92 },
-  { day: 'Wed', score: 88 },
-  { day: 'Thu', score: 40 },
-  { day: 'Fri', score: 75 },
-  { day: 'Sat', score: 95 },
-  { day: 'Sun', score: 98 },
-];
-
-const riskRadar = [
-  { subject: 'Overload', A: 40, fullMark: 100 },
-  { subject: 'Pain Trend', A: 20, fullMark: 100 },
-  { subject: 'Rest Quality', A: 85, fullMark: 100 },
-  { subject: 'Consistency', A: 90, fullMark: 100 },
-  { subject: 'Macro Ratio', A: 75, fullMark: 100 },
-];
+import { useExerciseLogs, useWeightLogs, usePainLogs } from '@/hooks/useLogs';
+import { useActivePlan } from '@/hooks/usePlan';
 
 export function Insights() {
+  const { data: exerciseLogs = [] } = useExerciseLogs();
+  const { data: weightLogs = [] } = useWeightLogs();
+  const { data: painLogs = [] } = usePainLogs();
+  const { data: activePlan } = useActivePlan();
+
+  const mockAdherence = [
+    { day: 'Mon', score: 85 }, { day: 'Tue', score: 92 }, { day: 'Wed', score: 88 },
+    { day: 'Thu', score: 40 }, { day: 'Fri', score: 75 }, { day: 'Sat', score: 95 }, { day: 'Sun', score: 98 },
+  ];
+
+  const riskRadar = [
+    { subject: 'Overload', A: 40, fullMark: 100 },
+    { subject: 'Pain Trend', A: painLogs.length > 0 ? Math.min(100, painLogs[0].intensity * 10) : 20, fullMark: 100 },
+    { subject: 'Rest Quality', A: 85, fullMark: 100 },
+    { subject: 'Consistency', A: exerciseLogs.length > 0 ? Math.min(100, (exerciseLogs.length / 30) * 100) : 10, fullMark: 100 },
+    { subject: 'Macro Ratio', A: 75, fullMark: 100 },
+  ];
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -140,7 +141,7 @@ export function Insights() {
           </div>
           <div className="flex-1 min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={adherenceData}>
+              <AreaChart data={mockAdherence}>
                 <defs>
                   <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#4fb6b2" stopOpacity={0.3}/>

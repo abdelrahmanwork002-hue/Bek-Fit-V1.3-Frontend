@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
+import { useWeightLogs, useExerciseLogs, usePainLogs } from '@/hooks/useLogs';
 
 interface UserAnalyticsModalProps {
   isOpen: boolean;
@@ -12,16 +13,24 @@ interface UserAnalyticsModalProps {
   user: any;
 }
 
-const mockAdherenceData = [
-  { date: '2026-04-10', score: 85 },
-  { date: '2026-04-12', score: 92 },
-  { date: '2026-04-14', score: 40 },
-  { date: '2026-04-16', score: 88 },
-  { date: '2026-04-18', score: 95 },
-];
-
 export function UserAnalyticsModal({ isOpen, onClose, user }: UserAnalyticsModalProps) {
+  const { data: weightLogs = [] } = useWeightLogs(user?.id);
+  const { data: exerciseLogs = [] } = useExerciseLogs(user?.id);
+  const { data: painLogs = [] } = usePainLogs(user?.id);
+
+  const mockAdherenceData = [
+    { date: '2026-04-10', score: 85 },
+    { date: '2026-04-12', score: 92 },
+    { date: '2026-04-14', score: 40 },
+    { date: '2026-04-16', score: 88 },
+    { date: '2026-04-18', score: 95 },
+  ];
+
   if (!isOpen || !user) return null;
+
+  const avgRpe = exerciseLogs.length > 0 
+    ? (exerciseLogs.reduce((acc: number, l: any) => acc + (l.avgRpe || 0), 0) / exerciseLogs.length).toFixed(1)
+    : '0';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
@@ -50,10 +59,10 @@ export function UserAnalyticsModal({ isOpen, onClose, user }: UserAnalyticsModal
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { label: 'Consistency', value: '94%', icon: Zap, color: 'text-primary' },
-              { label: 'Weekly Avg RPE', value: '7.2', icon: Activity, color: 'text-amber-400' },
-              { label: 'Risk Profile', value: 'Stable', icon: ShieldAlert, color: 'text-emerald-400' },
-              { label: 'Last Log', value: '2h ago', icon: Calendar, color: 'text-blue-400' },
+              { label: 'Consistency', value: exerciseLogs.length > 0 ? `${(exerciseLogs.length / 3).toFixed(0)}%` : '0%', icon: Zap, color: 'text-primary' },
+              { label: 'Weekly Avg RPE', value: avgRpe, icon: Activity, color: 'text-amber-400' },
+              { label: 'Risk Profile', value: painLogs.length > 0 && painLogs[0].painLevel > 5 ? 'High Risk' : 'Stable', icon: ShieldAlert, color: 'text-emerald-400' },
+              { label: 'Total Sessions', value: exerciseLogs.length.toString(), icon: Calendar, color: 'text-blue-400' },
             ].map((stat, i) => (
               <Card key={i} className="glass p-5 border-white/5">
                 <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-2">
@@ -101,25 +110,54 @@ export function UserAnalyticsModal({ isOpen, onClose, user }: UserAnalyticsModal
             <Card className="glass border-white/5 p-6 flex flex-col">
               <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">Recent Activity</h3>
               <div className="space-y-4 flex-1">
-                {[
-                  { activity: 'Logged Workout', time: '2h ago', detail: 'Advanced Calisthenics' },
-                  { activity: 'Macro Goal Met', time: '5h ago', detail: '2,100 kcal / 115g Prom' },
-                  { activity: 'Weight Update', time: '1d ago', detail: '75.2 kg (-0.4kg)' },
-                ].map((act, i) => (
+                {exerciseLogs.slice(0, 3).map((act: any, i: number) => (
                   <div key={i} className="flex gap-4 group cursor-pointer border-b border-white/5 pb-4 last:border-0 last:pb-0">
                     <div className="size-2 rounded-full bg-primary/40 mt-1.5" />
                     <div>
-                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{act.activity}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5">{act.detail}</div>
-                      <div className="text-[9px] text-primary font-bold uppercase mt-1">{act.time}</div>
+                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{act.exerciseName}</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">{act.sets} Sets Completed</div>
+                      <div className="text-[9px] text-primary font-bold uppercase mt-1">{new Date(act.timestamp).toLocaleDateString()}</div>
                     </div>
                   </div>
                 ))}
+                {exerciseLogs.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-xs italic">No recent exercise logs</div>
+                )}
               </div>
               <Button variant="ghost" className="w-full mt-6 text-xs text-muted-foreground hover:text-white">
                 View Full Log History <ChevronRight className="size-3 ml-2" />
               </Button>
             </Card>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Systemic Overrides (Client Profile Management)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
+               <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sitting Status</label>
+                  <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white">
+                     <option>0-2 Hours (Active)</option>
+                     <option>4-6 Hours (Moderate)</option>
+                     <option selected>8+ Hours (Sedentary)</option>
+                  </select>
+               </div>
+               <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nutrition Strategy</label>
+                  <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white">
+                     <option selected>High Protein / Hypertrophy</option>
+                     <option>Keto / Fat Loss</option>
+                     <option>Balanced / Vitality</option>
+                  </select>
+               </div>
+               <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Plan Override</label>
+                  <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white">
+                     <option>Elite Hypertrophy V4</option>
+                     <option>Mobility Alpha</option>
+                     <option selected>Custom AI Protocol</option>
+                  </select>
+               </div>
+            </div>
           </div>
         </div>
 
@@ -128,10 +166,10 @@ export function UserAnalyticsModal({ isOpen, onClose, user }: UserAnalyticsModal
           <Badge className="bg-primary/10 text-primary border-primary/20">MEMBER SINCE APRIL 2026</Badge>
           <div className="flex gap-3">
              <Button variant="outline" className="border-white/10 bg-white/5 text-white" onClick={onClose}>
-               Close Profile
+               Discard
              </Button>
-             <Button className="bg-emerald-500 hover:bg-emerald-600 font-bold">
-               Send Feedback Message
+             <Button className="bg-emerald-500 hover:bg-emerald-600 font-bold px-8 shadow-lg shadow-emerald-500/20">
+               Apply & Sync Profile
              </Button>
           </div>
         </div>

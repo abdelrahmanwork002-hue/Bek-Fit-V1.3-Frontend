@@ -3,29 +3,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { Search, Calendar as CalendarIcon, Filter, Download, ChevronRight, Activity, Flame, CheckCircle2, X, Info, TrendingUp, Scale, Award, ArrowUpRight, ArrowDownRight, Plus, Utensils } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, ChevronRight, Activity, CheckCircle2, X, TrendingUp, Scale, Award, ArrowUpRight, ArrowDownRight, Plus, Utensils } from 'lucide-react';
 import { WeightLogModal } from '@/components/log-modals/WeightLogModal';
 import { useLanguage } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import { useWeightLogs, useExerciseLogs } from '@/hooks/useLogs';
+import { useQueryClient } from '@tanstack/react-query';
 
-const weightData = [
-  { date: 'Apr 01', weight: 82.5 },
-  { date: 'Apr 05', weight: 81.8 },
-  { date: 'Apr 10', weight: 82.0 },
-  { date: 'Apr 12', weight: 81.2 },
-  { date: 'Apr 15', weight: 80.9 },
-  { date: 'Apr 18', weight: 80.5 },
-];
+
 
 export function Progress() {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
+  const { data: weightData = [] } = useWeightLogs();
+  const { data: exerciseLogs = [] } = useExerciseLogs();
+
+  const currentWeight = weightData.length ? weightData[weightData.length - 1]?.weight ?? 0 : 0;
+  const firstWeight = weightData.length ? weightData[0]?.weight ?? 0 : 0;
+  const weightChange = currentWeight && firstWeight ? (currentWeight - firstWeight).toFixed(1) : '0';
+
   const exportData = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
+    const csvContent = "data:text/csv;charset=utf-8,"
       + "Date,Weight,Status\n"
-      + weightData.map(e => `${e.date},${e.weight},Logged`).join("\n");
+      + weightData.map((e: any) => `${e.date},${e.weight},Logged`).join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -62,10 +65,10 @@ export function Progress() {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Current Weight', value: '80.5 kg', trend: '-2.0kg', positive: true, icon: Scale, color: 'text-blue-400' },
-          { label: 'Workout Streak', value: '12 Days', trend: 'New Record!', positive: true, icon: Award, color: 'text-amber-400' },
+          { label: 'Current Weight', value: currentWeight ? `${currentWeight} kg` : '— kg', trend: `${weightChange}kg change`, positive: Number(weightChange) <= 0, icon: Scale, color: 'text-blue-400' },
+          { label: 'Logged Sessions', value: `${exerciseLogs.length}`, trend: 'total logged', positive: true, icon: Award, color: 'text-amber-400' },
           { label: 'Adherence', value: '94%', trend: '+4%', positive: true, icon: TrendingUp, color: 'text-emerald-400' },
-          { label: 'Next Milestone', value: '78.0 kg', trend: '2.5kg to go', positive: false, icon: CalendarIcon, color: 'text-primary' },
+          { label: 'Next Milestone', value: `${Math.max(0, currentWeight - 2.5).toFixed(1)} kg`, trend: '2.5kg to go', positive: false, icon: CalendarIcon, color: 'text-primary' },
         ].map((stat, i) => (
           <Card key={i} className="glass border-white/5 p-6">
             <div className="flex items-center gap-4 mb-4">
@@ -284,10 +287,10 @@ export function Progress() {
         </Card>
       )}
 
-      <WeightLogModal 
-        isOpen={isWeightModalOpen} 
-        onClose={() => setIsWeightModalOpen(false)} 
-        onSuccess={() => console.log('Weight logged!')}
+      <WeightLogModal
+        isOpen={isWeightModalOpen}
+        onClose={() => setIsWeightModalOpen(false)}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['logs-weight'] })}
       />
     </div>
   );

@@ -289,9 +289,18 @@ export function ExerciseLogModal({ exercise, isOpen, onClose, onSave, onSwap }: 
             Cancel
           </Button>
           <Button 
-            className="flex-1 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 rounded-xl"
+            className="flex-1 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 rounded-xl group relative overflow-hidden"
             disabled={loading}
             onClick={async () => {
+              const hasSkips = sets.some(s => s.status === 'skipped');
+              const isMandatory = exercise.isRequired || exercise.type === 'Strength'; // Mocking logic for demo
+              
+              if (isMandatory && hasSkips) {
+                if (!confirm("⚠️ MANDATORY MOVEMENT: You are skipping sets on a critical exercise. Your AI score may be affected. Confirm finishing anyway?")) {
+                  return;
+                }
+              }
+
               setLoading(true);
               await onSave(sets);
               setLoading(false);

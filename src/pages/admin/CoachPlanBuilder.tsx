@@ -4,9 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Calendar, User, Dumbbell, Save, Copy, Trash2, Rocket, LayoutGrid, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CreatePlanModal } from '@/components/admin/CreatePlanModal';
+import { EditExerciseModal } from '@/components/admin/EditExerciseModal'; // Reusing for plan-level edits
 
 export default function CoachPlanBuilder() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   
   const templates = [
     { id: '1', name: 'Elite Hypertrophy V4', type: 'Strength', users: 142, duration: '12 Weeks' },
@@ -26,7 +29,10 @@ export default function CoachPlanBuilder() {
           <Button variant="outline" className="border-white/10 bg-white/5 font-bold" onClick={() => setView(view === 'grid' ? 'list' : 'grid')}>
             {view === 'grid' ? <List className="size-4" /> : <LayoutGrid className="size-4" />}
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-bold px-8">
+          <Button 
+            className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-bold px-8"
+            onClick={() => setIsCreateOpen(true)}
+          >
             <Plus className="size-5 mr-2" />
             Build New Plan
           </Button>
@@ -115,6 +121,11 @@ export default function CoachPlanBuilder() {
          </p>
          <Button className="bg-primary hover:bg-primary/90 mt-4 px-10 font-bold shadow-2xl shadow-primary/30">Connect Athletes</Button>
       </div>
+
+      <CreatePlanModal 
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
     </div>
   );
 }

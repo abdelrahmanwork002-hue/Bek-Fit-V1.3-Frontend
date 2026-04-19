@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Utensils, Clock, Flame, ChevronRight, CheckCircle2, Info, RefreshCw, X, Search, Filter, Leaf, Dumbbell, WheatOff } from 'lucide-react';
+import { Utensils, Clock, Flame, ChevronRight, CheckCircle2, Info, RefreshCw, X, Search, Filter, Leaf, Dumbbell, WheatOff, Loader2 } from 'lucide-react';
 import { NutritionLogModal } from '@/components/log-modals/NutritionLogModal';
 import { cn } from '@/lib/utils';
+import { useTodayMeals, useMealLibrary, useSwapMeal } from '@/hooks/useNutrition';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function Nutrition() {
+  const queryClient = useQueryClient();
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
@@ -14,69 +17,13 @@ export function Nutrition() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
-  const [meals, setMeals] = useState([
-    {
-      id: '1',
-      type: 'Breakfast',
-      name: 'Avocado Toast with Poached Eggs',
-      calories: 450,
-      protein: 22,
-      carbs: 35,
-      fats: 25,
-      completed: true,
-      image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=400&q=80',
-      instructions: 'Toast the bread. Mash avocado with lemon juice. Poach eggs for 3 mins.'
-    },
-    {
-      id: '2',
-      type: 'Lunch',
-      name: 'Grilled Chicken Quinoa Bowl',
-      calories: 580,
-      protein: 45,
-      carbs: 55,
-      fats: 15,
-      completed: false,
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
-      instructions: 'Grill chicken breast. Mix quinoa with roasted veggies and lemon tahini dressing.'
-    },
-    {
-      id: '3',
-      type: 'Dinner',
-      name: 'Baked Salmon with Asparagus',
-      calories: 510,
-      protein: 38,
-      carbs: 10,
-      fats: 32,
-      completed: false,
-      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
-      instructions: 'Season salmon with herbs. Bake at 200C for 15 mins with asparagus.'
-    },
-    {
-      id: '4',
-      type: 'Snack',
-      name: 'Greek Yogurt with Berries',
-      calories: 200,
-      protein: 15,
-      carbs: 20,
-      fats: 5,
-      completed: false,
-      image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=400&q=80',
-      instructions: 'Mix 200g Greek yogurt with fresh blueberries and a drizzle of honey.'
-    }
-  ]);
+  const { data: meals = [], isLoading: mealsLoading } = useTodayMeals();
+  const { data: substitutionLibrary = [], isLoading: libLoading } = useMealLibrary();
+  const swapMutation = useSwapMeal();
 
-  const substitutionLibrary = [
-    { id: 'sub1', name: 'Oatmeal with Almonds', calories: 420, protein: 15, carbs: 50, fats: 12, type: 'Breakfast', tags: ['Vegan', 'High Fiber'], image: 'https://images.unsplash.com/photo-1517433662323-146316ec711d?auto=format&fit=crop&w=400&q=80', instructions: 'Boil oats in milk. Top with raw almonds.' },
-    { id: 'sub2', name: 'Turkey & Swiss Wrap', calories: 510, protein: 35, carbs: 45, fats: 18, type: 'Lunch', tags: ['High Protein'], image: 'https://images.unsplash.com/photo-1548946522-4a313e8972a4?auto=format&fit=crop&w=400&q=80', instructions: 'Wrap sliced turkey and swiss cheese in a whole wheat tortilla.' },
-    { id: 'sub3', name: 'Grilled Steak & Greens', calories: 620, protein: 55, carbs: 12, fats: 38, type: 'Dinner', tags: ['Keto', 'High Protein'], image: 'https://images.unsplash.com/photo-1514516369414-78177d40e990?auto=format&fit=crop&w=400&q=80', instructions: 'Grill steak to preference. Serve with fresh lettuce and spinach.' },
-    { id: 'sub4', name: 'Hummus & Carrots', calories: 180, protein: 8, carbs: 22, fats: 10, type: 'Snack', tags: ['Vegan', 'Gluten Free'], image: 'https://images.unsplash.com/photo-1541533375320-fed818ec0981?auto=format&fit=crop&w=400&q=80', instructions: 'Dip fresh baby carrots into 3 tbsp of hummus.' },
-    { id: 'sub5', name: 'Protein Pancakes', calories: 350, protein: 30, carbs: 40, fats: 8, type: 'Breakfast', tags: ['High Protein'], image: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=400&q=80', instructions: 'Mix protein powder, oats, and egg whites. Cook on medium heat.' },
-    { id: 'sub6', name: 'Quinoa & Black Beans', calories: 440, protein: 18, carbs: 75, fats: 6, type: 'Lunch', tags: ['Vegan', 'Gluten Free'], image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=400&q=80', instructions: 'Boil quinoa. Mix with canned black beans and salsa.' },
-  ];
+  const mealToSwap = meals.find((m: any) => m.id === mealToSwapId);
 
-  const mealToSwap = meals.find(m => m.id === mealToSwapId);
-
-  const filteredLibrary = substitutionLibrary.filter(item => {
+  const filteredLibrary = substitutionLibrary.filter((item: any) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.type.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTag = activeTag ? item.tags.includes(activeTag) : true;
@@ -84,20 +31,18 @@ export function Nutrition() {
   });
 
   const handleSwap = (replacementMeal: any) => {
-    setMeals(prev => prev.map(m => 
-      m.id === mealToSwapId 
-        ? { ...replacementMeal, id: m.id, type: m.type, completed: false } 
-        : m
-    ));
-    setIsSwapModalOpen(false);
-    setMealToSwapId(null);
+    if (mealToSwapId) {
+      swapMutation.mutate({ mealId: mealToSwapId, replacement: replacementMeal });
+      setIsSwapModalOpen(false);
+      setMealToSwapId(null);
+    }
   };
 
-  const totalMacros = meals.reduce((acc, meal) => ({
-    cal: acc.cal + meal.calories,
-    pro: acc.pro + meal.protein,
-    car: acc.car + meal.carbs,
-    fat: acc.fat + meal.fats,
+  const totalMacros = (meals || []).reduce((acc: any, meal: any) => ({
+    cal: acc.cal + (meal.calories || 0),
+    pro: acc.pro + (meal.protein || 0),
+    car: acc.car + (meal.carbs || 0),
+    fat: acc.fat + (meal.fats || 0),
   }), { cal: 0, pro: 0, car: 0, fat: 0 });
 
   return (
@@ -143,11 +88,11 @@ export function Nutrition() {
 
       {/* Meal Slots */}
       <div className="space-y-4">
-        {meals.map((meal) => (
+        {meals.map((meal: any) => (
           <Card key={meal.id} className="glass border-white/5 overflow-hidden hover:border-white/10 transition-colors group">
             <div className="flex flex-col md:flex-row">
               <div className="md:w-48 h-48 md:h-auto overflow-hidden relative">
-                <img src={meal.image} alt={meal.name} className="size-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={meal.image} alt={meal.name} loading="lazy" className="size-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-3 left-3">
                   <Badge className="bg-black/60 backdrop-blur-md border-white/10 text-[10px] uppercase font-bold">{meal.type}</Badge>
                 </div>
@@ -252,7 +197,7 @@ export function Nutrition() {
         </div>
       )}
 
-      {/* Meal Swap Modal (Story 16) */}
+      {/* Meal Swap Modal */}
       {isSwapModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
           <div className="w-full max-w-2xl bg-[#0F1115] border border-white/10 rounded-3xl shadow-2xl flex flex-col max-h-[85vh]">
@@ -285,15 +230,12 @@ export function Nutrition() {
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                  {['High Protein', 'Vegan', 'Gluten Free', 'Keto', 'High Fiber'].map((tag) => (
-                    <button
+                  {['High Protein', 'Vegan', 'Gluten Free', 'Keto', 'High Fiber'].map((tag: string) => (
+                    <button 
                       key={tag}
                       onClick={() => setActiveTag(activeTag === tag ? null : tag)}
                       className={cn(
-                        "px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all",
-                        activeTag === tag 
-                          ? "bg-primary border-primary text-white" 
-                          : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
+                        activeTag === tag ? "bg-primary text-white border-primary" : "bg-white/5 text-muted-foreground border-white/5 hover:border-white/20"
                       )}
                     >
                       {tag}
@@ -304,7 +246,7 @@ export function Nutrition() {
             </div>
             
             <div className="flex-1 overflow-y-auto p-8 space-y-4">
-              {filteredLibrary.length > 0 ? filteredLibrary.map((meal) => {
+              {filteredLibrary.length > 0 ? filteredLibrary.map((meal: any) => {
                 const isMatch = mealToSwap?.type === meal.type;
                 return (
                   <div key={meal.id} className={cn(
@@ -322,7 +264,7 @@ export function Nutrition() {
                         </div>
                         <h4 className="font-bold text-white text-lg group-hover:text-primary transition-colors">{meal.name}</h4>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {meal.tags.map(t => (
+                          {meal.tags.map((t: string) => (
                             <span key={t} className="text-[8px] font-bold text-muted-foreground uppercase flex items-center gap-1">
                               {t === 'Vegan' && <Leaf className="size-2 text-emerald-400" />}
                               {t === 'High Protein' && <Dumbbell className="size-2 text-primary" />}

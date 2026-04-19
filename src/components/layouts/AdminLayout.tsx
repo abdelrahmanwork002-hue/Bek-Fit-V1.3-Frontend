@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router';
-import { Activity, LayoutDashboard, Users, Dumbbell, Bot, BookOpen, Menu, X, ChevronLeft } from 'lucide-react';
+import { Activity, LayoutDashboard, Users, Dumbbell, Bot, BookOpen, Menu, X, ChevronLeft, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SignedIn, SignedOut, UserButton, RedirectToSignIn } from '@clerk/clerk-react';
 import { useState } from 'react';
@@ -8,7 +8,9 @@ const adminNav = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: Users, label: 'User Management', path: '/admin/users' },
   { icon: Dumbbell, label: 'Exercise Library', path: '/admin/exercises' },
+  { icon: Activity, label: 'Nutrition Hub', path: '/admin/nutrition' },
   { icon: BookOpen, label: 'Plan Builder', path: '/admin/plans' },
+  { icon: FileText, label: 'Content Studio', path: '/admin/blog' },
   { icon: Bot, label: 'AI Settings', path: '/admin/ai-settings' },
 ];
 

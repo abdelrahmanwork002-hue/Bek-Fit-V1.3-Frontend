@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ChevronRight, ChevronLeft, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { useAuth } from '@clerk/clerk-react';
 
 const steps = [
   {
@@ -57,23 +59,55 @@ export function Onboarding() {
     }
   };
 
-  const generatePlan = () => {
+  const [genMessage, setGenMessage] = useState("Analyzing your profile...");
+  const onboardingMutation = useOnboarding();
+
+  const generatePlan = async () => {
     setIsGenerating(true);
-    // Simulate AI Generation (Story 1.3)
-    setTimeout(() => {
+    const messages = [
+      "Analyzing biomechanical goals...",
+      "Optimizing RPE thresholds...",
+      "Matching equipment availability...",
+      "Synthesizing vitality protocol...",
+      "Finalizing GPT-4 intelligence sync..."
+    ];
+    
+    let midx = 0;
+    const interval = setInterval(() => {
+      if (midx < messages.length) {
+        setGenMessage(messages[midx]);
+        midx++;
+      }
+    }, 500);
+
+    try {
+      await onboardingMutation.mutateAsync(selections);
+      clearInterval(interval);
       navigate('/app');
-    }, 2500);
+    } catch (error) {
+      clearInterval(interval);
+      setIsGenerating(false);
+      alert("Failed to generate plan. Please try again.");
+    }
   };
 
   if (isGenerating) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center space-y-8 p-4">
-        <div className="size-24 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
-          <Sparkles className="size-12 text-primary animate-spin-slow" />
+      <div className="min-h-screen bg-[#0F1115] flex flex-col items-center justify-center space-y-10 p-6">
+        <div className="relative">
+          <div className="size-32 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+            <Sparkles className="size-16 text-primary animate-spin-slow" />
+          </div>
+          <div className="absolute inset-0 size-32 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl font-bold">Synthesizing Your Plan</h2>
-          <p className="text-muted-foreground">OpenAI GPT-4 is analyzing your profile...</p>
+        <div className="text-center space-y-4 max-w-sm">
+          <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Vitality Engine</h2>
+          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+             <div className="h-full bg-primary animate-[shimmer_2s_infinite]" style={{ width: '60%' }} />
+          </div>
+          <p className="text-sm font-bold text-primary uppercase tracking-widest animate-pulse">
+            {genMessage}
+          </p>
         </div>
       </div>
     );

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Settings2, Trash2, Plus, Play, History, ShieldAlert, Cpu, Activity, Zap, Info } from 'lucide-react';
+import { Bot, Settings2, Trash2, Plus, History, ShieldAlert, Cpu, Activity, Zap, Info, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 
@@ -15,6 +15,30 @@ const agents = [
 export function AISettings() {
   const [riskSensitivity, setRiskSensitivity] = useState([65]);
   const [rpeThreshold, setRpeThreshold] = useState([85]);
+
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([
+    { role: 'system', content: 'System initialized (v1.3.0-nexus). Awaiting simulation payload...' },
+    { role: 'admin', content: 'Define a "Required" exercise for shoulder impingement using the RAG knowledge base.' },
+    { role: 'agent', content: '"Retrieved knowledge: \'Scapula Wall Slides\'. Marked as MANDATORY. Setting default RPE to 3 to ensure low-load mobilization. Skip logic: Disabled for this movement."' }
+  ]);
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  const handleSimulate = () => {
+    if (!input.trim()) return;
+    const newMsg = { role: 'admin', content: input };
+    setMessages([...messages, newMsg]);
+    setInput('');
+    setIsSimulating(true);
+
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        role: 'agent', 
+        content: `Refined plan for: "${newMsg.content}". Adjusting metabolic threshold by +12%. New exercise suggestion: Kettlebell Z-Press (Low Intensity).` 
+      }]);
+      setIsSimulating(false);
+    }, 1500);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in transition-all duration-700">
@@ -185,6 +209,65 @@ export function AISettings() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="mt-12">
+        <div className="flex items-center justify-between mb-8">
+           <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Interaction Sandbox</h2>
+           <Badge variant="outline" className="text-primary border-primary/20">Story 10.5.9a Compliance</Badge>
+        </div>
+
+        <Card className="glass p-8 border-primary/20 bg-white/[0.01] flex flex-col h-[500px]">
+           <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                 <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <Sparkles className="size-5" />
+                 </div>
+                 <div>
+                    <h3 className="text-sm font-bold text-white">Agent Debugger</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Live Prompt Simulation</p>
+                 </div>
+              </div>
+              <Badge variant="outline" className="text-emerald-400 border-emerald-500/20">Failover Active: Anthropic</Badge>
+           </div>
+
+            <div className="flex-1 bg-black/40 rounded-2xl border border-white/5 p-6 overflow-y-auto mb-6 font-mono text-xs space-y-6">
+              {messages.map((msg, i) => (
+                <div key={i} className={cn(
+                  "p-4 rounded-2xl border transition-all animate-in fade-in slide-in-from-bottom-2",
+                  msg.role === 'system' ? "text-emerald-400 opacity-60 border-none flex items-center gap-2" :
+                  msg.role === 'admin' ? "bg-white/5 border-white/5 text-gray-300 max-w-[80%]" :
+                  "bg-primary/5 border-primary/10 text-white italic max-w-[80%] ml-auto shadow-lg shadow-primary/5"
+                )}>
+                  {msg.role === 'system' && <div className="size-1 bg-emerald-400 rounded-full animate-pulse" />}
+                  {msg.role !== 'system' && <span className={cn("font-bold mr-2 uppercase text-[9px]", msg.role === 'admin' ? "text-primary" : "text-emerald-400")}>{msg.role}:</span>}
+                  {msg.content}
+                </div>
+              ))}
+              {isSimulating && (
+                <div className="text-primary animate-pulse flex items-center gap-2 italic">
+                   <Loader2 className="size-3 animate-spin" /> Agent is analyzing request...
+                </div>
+              )}
+           </div>
+
+            <div className="flex gap-3">
+              <input 
+                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-primary/50 text-white font-medium"
+                placeholder="Simulate an agent interaction (e.g. Generate high-protein meal)..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSimulate()}
+              />
+              <Button 
+                onClick={handleSimulate}
+                disabled={isSimulating}
+                className="bg-primary hover:bg-primary/90 font-bold px-10 h-14 rounded-2xl shadow-lg shadow-primary/20"
+              >
+                {isSimulating ? <Loader2 className="size-4 animate-spin" /> : 'Simulate'}
+              </Button>
+           </div>
+        </Card>
       </div>
     </div>
   );

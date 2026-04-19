@@ -5,6 +5,7 @@ import api, { setApiToken } from '@/lib/api';
 import { Sparkles, ShieldCheck, User, Search, MoreVertical, Ban, CheckCircle2, Eye, ShieldAlert } from 'lucide-react';
 import { AISupportModal } from '@/components/admin/AISupportModal';
 import { UserAnalyticsModal } from '@/components/admin/UserAnalyticsModal';
+import { AddUserModal } from '@/components/admin/AddUserModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -32,6 +33,7 @@ export function UserManagement() {
   const [search, setSearch] = useState('');
   const [aiUser, setAiUser] = useState<UserRecord | null>(null);
   const [analyticsUser, setAnalyticsUser] = useState<UserRecord | null>(null);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
   useEffect(() => { getToken().then(setApiToken); }, [getToken]);
 
@@ -81,7 +83,10 @@ export function UserManagement() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button className="bg-primary/20 text-primary border border-primary/20 hover:bg-primary font-bold transition-all">
+          <Button 
+            className="bg-primary/20 text-primary border border-primary/20 hover:bg-primary font-bold transition-all"
+            onClick={() => setIsAddUserOpen(true)}
+          >
             Invite New Member
           </Button>
         </div>
@@ -212,6 +217,11 @@ export function UserManagement() {
         isOpen={!!analyticsUser}
         onClose={() => setAnalyticsUser(null)}
         user={analyticsUser}
+      />
+
+      <AddUserModal 
+        isOpen={isAddUserOpen}
+        onClose={() => setIsAddUserOpen(false)}
       />
     </div>
   );

@@ -21,8 +21,8 @@ export function AdminDashboard() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black italic tracking-tighter text-white uppercase">System Nexus</h1>
-          <p className="text-muted-foreground mt-1 text-sm font-medium">Platform-wide intelligence and member adherence metrics.</p>
+          <h1 className="text-4xl font-black italic tracking-tighter text-white uppercase">Coach Command Center</h1>
+          <p className="text-muted-foreground mt-1 text-sm font-medium">Monitoring member biomechanics, adherence, and platform vitality.</p>
         </div>
         <div className="flex gap-3">
            <Card className="bg-primary/5 border-primary/20 px-4 py-2 flex items-center gap-3">
@@ -98,44 +98,61 @@ export function AdminDashboard() {
             </ResponsiveContainer>
           </div>
         </Card>
+      </div>
 
-        {/* Global System Alerts */}
-        <div className="flex flex-col gap-6">
-           <Card className="glass border-white/5 p-8 flex-1">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-sm font-black uppercase tracking-widest text-white italic">Shield Alerts</h3>
-                <AlertCircle className="size-5 text-orange-400" />
-              </div>
-              <div className="space-y-4">
-                {[
-                  { title: 'High Latency', node: 'EU-WEST-1', severity: 'Medium' },
-                  { title: 'Auth Burst', node: 'CLERK-IO', severity: 'Low' },
-                ].map((alert, i) => (
-                  <div key={i} className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-primary/20 transition-all">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+         <Card className="glass border-white/5 p-8">
+            <h3 className="text-xl font-bold text-white uppercase italic mb-6">Weekly Adherence Distribution</h3>
+            <div className="h-[250px]">
+               <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { name: 'Mon', completion: 92 },
+                    { name: 'Tue', completion: 88 },
+                    { name: 'Wed', completion: 95 },
+                    { name: 'Thu', completion: 45 },
+                    { name: 'Fri', completion: 78 },
+                    { name: 'Sat', completion: 91 },
+                    { name: 'Sun', completion: 93 },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                    <XAxis dataKey="name" stroke="#ffffff20" fontSize={10} axisLine={false} tickLine={false} />
+                    <YAxis hide />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0F1115', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                    />
+                    <Bar dataKey="completion" fill="#4fb6b2" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+               </ResponsiveContainer>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-4 italic text-center">
+              Coaching Insight: Adherence drops significantly on Thursdays. Consider AI adjustment for mid-week load.
+            </p>
+         </Card>
+
+         <Card className="glass border-white/5 p-8">
+            <h3 className="text-xl font-bold text-white uppercase italic mb-6">Top Biomechanical Risks</h3>
+            <div className="space-y-6">
+               {[
+                 { name: 'Shoulder Impingement', count: 124, trend: 'Increasing' },
+                 { name: 'Lower Back Tension', count: 85, trend: 'Stable' },
+                 { name: 'Knee Instability', count: 42, trend: 'Improving' },
+               ].map((risk, i) => (
+                 <div key={i} className="flex items-center justify-between group">
                     <div>
-                      <div className="text-xs font-bold text-white">{alert.title}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5">{alert.node}</div>
+                       <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{risk.name}</div>
+                       <div className="text-[10px] text-muted-foreground uppercase">{risk.count} Members Affected</div>
                     </div>
-                    <Badge className={cn(
-                      "text-[8px] font-black uppercase",
-                      alert.severity === 'Medium' ? "bg-orange-500/10 text-orange-400" : "bg-blue-500/10 text-blue-400"
-                    )}>{alert.severity}</Badge>
-                  </div>
-                ))}
-              </div>
-           </Card>
-
-           <Card className="bg-primary hover:bg-primary/90 transition-all p-8 group cursor-pointer relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-20 transition-transform group-hover:scale-110">
-                 <ShieldCheck className="size-20 text-white" />
-              </div>
-              <div className="relative z-10">
-                 <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Security Audit</h3>
-                 <p className="text-xs text-white/70 mt-1 max-w-[200px]">Perform a platform-wide deep scan of all AI-generated routines.</p>
-                 <Button className="mt-6 bg-black/20 hover:bg-black/40 text-white border border-white/20 text-[10px] font-black uppercase tracking-widest">Run Scan</Button>
-              </div>
-           </Card>
-        </div>
+                    <Badge variant="outline" className={cn(
+                      "text-[9px] font-black uppercase border-none",
+                      risk.trend === 'Increasing' ? "text-rose-400" : "text-emerald-400"
+                    )}>{risk.trend}</Badge>
+                 </div>
+               ))}
+            </div>
+            <Button className="w-full mt-10 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-widest h-12 rounded-2xl">
+              View Detailed Health Map
+            </Button>
+         </Card>
       </div>
     </div>
   );

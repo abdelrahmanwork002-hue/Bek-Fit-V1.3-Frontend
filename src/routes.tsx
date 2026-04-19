@@ -11,6 +11,10 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { UserManagement } from './pages/admin/UserManagement';
 import { AISettings } from './pages/admin/AISettings';
 import { ExerciseLibrary } from './pages/admin/ExerciseLibrary';
+import { NutritionLibrary } from './pages/admin/NutritionLibrary';
+import { BlogManager } from './pages/admin/BlogManager';
+import { Blog } from './pages/Blog';
+import { Profile } from './pages/Profile';
 import CoachPlanBuilder from './pages/admin/CoachPlanBuilder';
 
 const ComingSoon = ({ label }: { label: string }) => (
@@ -31,8 +35,9 @@ export const router = createBrowserRouter([
       { path: 'progress', element: <Progress /> },
       { path: 'nutrition', element: <Nutrition /> },
       { path: 'insights', element: <Insights /> },
-      { path: 'tips', element: <ComingSoon label="Daily Vitality Tips" /> },
-      { path: 'profile', element: <ComingSoon label="Profile Settings" /> },
+      { path: 'tips', element: <Blog /> },
+      { path: 'tips/:id', element: <ComingSoon label="Article Content" /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
   {
@@ -42,6 +47,8 @@ export const router = createBrowserRouter([
       { index: true, element: <AdminDashboard /> },
       { path: 'users', element: <UserManagement /> },
       { path: 'exercises', element: <ExerciseLibrary /> },
+      { path: 'nutrition', element: <NutritionLibrary /> },
+      { path: 'blog', element: <BlogManager /> },
       { path: 'plans', element: <CoachPlanBuilder /> },
       { path: 'ai-settings', element: <AISettings /> },
     ],

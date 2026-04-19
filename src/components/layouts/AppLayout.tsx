@@ -7,6 +7,8 @@ import { useLanguage } from '@/lib/i18n';
 import { SignedIn, SignedOut, UserButton, RedirectToSignIn, useAuth } from '@clerk/clerk-react';
 import { useState, useEffect } from 'react';
 import { setApiToken } from '@/lib/api';
+import { NotificationBell } from '../NotificationBell';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 export function AppLayout() {
   const { getToken } = useAuth();
@@ -108,6 +110,7 @@ export function AppLayout() {
                 <h2 className="text-lg font-semibold">{currentLabel}</h2>
               </div>
               <div className="flex items-center gap-3">
+                <NotificationBell />
                 <LanguageToggle />
                 <ThemeToggle />
                 <UserButton afterSignOutUrl="/" />
@@ -115,7 +118,9 @@ export function AppLayout() {
             </header>
 
             <div className="p-6 md:p-8">
-              <Outlet />
+              <ErrorBoundary>
+                <Outlet />
+              </ErrorBoundary>
             </div>
           </main>
         </div>
