@@ -88,3 +88,17 @@ export function useLogWeight() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['logs-weight'] }),
   });
 }
+
+export function useAuditLogs(userId: string) {
+  const { getToken } = useAuth();
+  useEffect(() => { getToken().then(setApiToken); }, [getToken]);
+
+  return useQuery({
+    queryKey: ['admin-audit', userId],
+    queryFn: async () => {
+      const { data } = await api.get(`/api/users/${userId}/audit`);
+      return data;
+    },
+    enabled: !!userId,
+  });
+}

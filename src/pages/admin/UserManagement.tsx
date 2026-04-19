@@ -2,10 +2,11 @@ import { useAuth } from '@clerk/clerk-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import api, { setApiToken } from '@/lib/api';
-import { Sparkles, ShieldCheck, User, Search, MoreVertical, Ban, CheckCircle2, Eye, ShieldAlert } from 'lucide-react';
+import { Sparkles, ShieldCheck, User, Search, MoreVertical, Ban, CheckCircle2, Eye, ShieldAlert, MessageSquare, Mail } from 'lucide-react';
 import { AISupportModal } from '@/components/admin/AISupportModal';
 import { UserAnalyticsModal } from '@/components/admin/UserAnalyticsModal';
 import { AddUserModal } from '@/components/admin/AddUserModal';
+import { EditUserProfileModal } from '@/components/admin/EditUserProfileModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -33,6 +34,7 @@ export function UserManagement() {
   const [search, setSearch] = useState('');
   const [aiUser, setAiUser] = useState<UserRecord | null>(null);
   const [analyticsUser, setAnalyticsUser] = useState<UserRecord | null>(null);
+  const [editUser, setEditUser] = useState<UserRecord | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
   useEffect(() => { getToken().then(setApiToken); }, [getToken]);
@@ -96,6 +98,7 @@ export function UserManagement() {
         <div className="grid grid-cols-[1fr,auto,auto] md:grid-cols-[1fr,150px,150px,200px] gap-px bg-white/5">
           {/* Header */}
           <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground">User Profile</div>
+          <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground hidden lg:block">Connectivity</div>
           <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground hidden md:block">System Role</div>
           <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground hidden md:block">Engagement</div>
           <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground">Governing Actions</div>
@@ -108,6 +111,7 @@ export function UserManagement() {
                 <div className="h-5 bg-white/5 rounded w-48 mb-2" />
                 <div className="h-3 bg-white/5 rounded w-64" />
               </div>
+              <div className="bg-background p-6 hidden lg:block animate-pulse" />
               <div className="bg-background p-6 hidden md:block animate-pulse" />
               <div className="bg-background p-6 hidden md:block animate-pulse" />
               <div className="bg-background p-6 animate-pulse" />
@@ -138,6 +142,16 @@ export function UserManagement() {
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">{user.email}</div>
                 </div>
+              </div>
+
+              {/* Communication Quick Actions */}
+              <div className="bg-background p-6 hidden lg:flex items-center gap-2">
+                 <a href={`mailto:${user.email}`} className="size-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-muted-foreground hover:bg-primary/20 hover:text-primary transition-all">
+                    <Mail className="size-4" />
+                 </a>
+                 <a href={`https://wa.me/${user.id}`} target="_blank" className="size-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-muted-foreground hover:bg-emerald-500/20 hover:text-emerald-400 transition-all">
+                    <MessageSquare className="size-4" />
+                 </a>
               </div>
 
               {/* Role Select */}
@@ -185,8 +199,8 @@ export function UserManagement() {
                     <DropdownMenuItem onClick={() => setAnalyticsUser(user)} className="gap-3 py-3 rounded-xl focus:bg-white/5 cursor-pointer">
                       <Eye className="size-4 text-primary" /> View Analytics
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="gap-3 py-3 rounded-xl focus:bg-white/5 cursor-pointer">
-                      <ShieldAlert className="size-4 text-amber-400" /> Audit Log
+                    <DropdownMenuItem onClick={() => setEditUser(user)} className="gap-3 py-3 rounded-xl focus:bg-white/5 cursor-pointer">
+                      <ShieldAlert className="size-4 text-amber-400" /> Override Profile
                     </DropdownMenuItem>
                     <div className="h-px bg-white/5 my-1" />
                     <DropdownMenuItem 
@@ -222,6 +236,12 @@ export function UserManagement() {
       <AddUserModal 
         isOpen={isAddUserOpen}
         onClose={() => setIsAddUserOpen(false)}
+      />
+
+      <EditUserProfileModal
+        isOpen={!!editUser}
+        onClose={() => setEditUser(null)}
+        user={editUser}
       />
     </div>
   );

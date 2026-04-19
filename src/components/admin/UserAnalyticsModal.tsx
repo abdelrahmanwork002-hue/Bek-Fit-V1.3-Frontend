@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
-import { useWeightLogs, useExerciseLogs, usePainLogs } from '@/hooks/useLogs';
+import { useWeightLogs, useExerciseLogs, usePainLogs, useAuditLogs } from '@/hooks/useLogs';
 
 interface UserAnalyticsModalProps {
   isOpen: boolean;
@@ -17,6 +17,9 @@ export function UserAnalyticsModal({ isOpen, onClose, user }: UserAnalyticsModal
   const { data: weightLogs = [] } = useWeightLogs(user?.id);
   const { data: exerciseLogs = [] } = useExerciseLogs(user?.id);
   const { data: painLogs = [] } = usePainLogs(user?.id);
+  const { data: auditLogs = [] } = useAuditLogs(user?.id);
+
+  const [activeTab, setActiveTab] = React.useState<'health' | 'audit'>('health');
 
   const mockAdherenceData = [
     { date: '2026-04-10', score: 85 },
@@ -45,8 +48,20 @@ export function UserAnalyticsModal({ isOpen, onClose, user }: UserAnalyticsModal
               <h2 className="text-3xl font-bold text-white">{user.fullName || 'Member Profile'}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-sm text-muted-foreground">{user.email}</p>
-                <span className="size-1 rounded-full bg-white/20" />
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 py-0 text-[10px]">ACTIVE MEMBER</Badge>
+                <div className="bg-white/5 p-1 rounded-xl flex gap-1 ml-4">
+                  <button 
+                    onClick={() => setActiveTab('health')}
+                    className={cn("px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all", activeTab === 'health' ? "bg-primary text-white" : "text-muted-foreground hover:text-white")}
+                  >
+                    Biometrics
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('audit')}
+                    className={cn("px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all", activeTab === 'audit' ? "bg-amber-500/20 text-amber-400 border border-amber-500/20" : "text-muted-foreground hover:text-white")}
+                  >
+                    Audit Trail
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -56,124 +71,117 @@ export function UserAnalyticsModal({ isOpen, onClose, user }: UserAnalyticsModal
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Consistency', value: exerciseLogs.length > 0 ? `${(exerciseLogs.length / 3).toFixed(0)}%` : '0%', icon: Zap, color: 'text-primary' },
-              { label: 'Weekly Avg RPE', value: avgRpe, icon: Activity, color: 'text-amber-400' },
-              { label: 'Risk Profile', value: painLogs.length > 0 && painLogs[0].painLevel > 5 ? 'High Risk' : 'Stable', icon: ShieldAlert, color: 'text-emerald-400' },
-              { label: 'Total Sessions', value: exerciseLogs.length.toString(), icon: Calendar, color: 'text-blue-400' },
-            ].map((stat, i) => (
-              <Card key={i} className="glass p-5 border-white/5">
-                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-2">
-                  <stat.icon className={cn("size-3", stat.color)} /> {stat.label}
-                </div>
-                <div className="text-xl font-bold text-white">{stat.value}</div>
-              </Card>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* adherence Chart */}
-            <Card className="lg:col-span-2 glass border-white/5 p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Adherence Trend (30D)</h3>
-                <TrendingUp className="size-4 text-primary" />
-              </div>
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={mockAdherenceData}>
-                    <defs>
-                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4fb6b2" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#4fb6b2" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#0F1115', border: '1px solid #ffffff10', borderRadius: '12px' }}
-                      itemStyle={{ color: '#4fb6b2' }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="#4fb6b2" 
-                      strokeWidth={2} 
-                      fillOpacity={1} 
-                      fill="url(#colorScore)" 
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-
-            {/* Recent Activity Mini-Feed */}
-            <Card className="glass border-white/5 p-6 flex flex-col">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">Recent Activity</h3>
-              <div className="space-y-4 flex-1">
-                {exerciseLogs.slice(0, 3).map((act: any, i: number) => (
-                  <div key={i} className="flex gap-4 group cursor-pointer border-b border-white/5 pb-4 last:border-0 last:pb-0">
-                    <div className="size-2 rounded-full bg-primary/40 mt-1.5" />
-                    <div>
-                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{act.exerciseName}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5">{act.sets} Sets Completed</div>
-                      <div className="text-[9px] text-primary font-bold uppercase mt-1">{new Date(act.timestamp).toLocaleDateString()}</div>
+          {activeTab === 'health' ? (
+            <>
+              {/* Stats Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Consistency', value: exerciseLogs.length > 0 ? `${(exerciseLogs.length / 3).toFixed(0)}%` : '0%', icon: Zap, color: 'text-primary' },
+                  { label: 'Weekly Avg RPE', value: avgRpe, icon: Activity, color: 'text-amber-400' },
+                  { label: 'Risk Profile', value: painLogs.length > 0 && painLogs[0].painLevel > 5 ? 'High Risk' : 'Stable', icon: ShieldAlert, color: 'text-emerald-400' },
+                  { label: 'Total Sessions', value: exerciseLogs.length.toString(), icon: Calendar, color: 'text-blue-400' },
+                ].map((stat, i) => (
+                  <Card key={i} className="glass p-5 border-white/5">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-2">
+                      <stat.icon className={cn("size-3", stat.color)} /> {stat.label}
                     </div>
-                  </div>
+                    <div className="text-xl font-bold text-white">{stat.value}</div>
+                  </Card>
                 ))}
-                {exerciseLogs.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground text-xs italic">No recent exercise logs</div>
-                )}
               </div>
-              <Button variant="ghost" className="w-full mt-6 text-xs text-muted-foreground hover:text-white">
-                View Full Log History <ChevronRight className="size-3 ml-2" />
-              </Button>
-            </Card>
-          </div>
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Systemic Overrides (Client Profile Management)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
-               <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sitting Status</label>
-                  <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white">
-                     <option>0-2 Hours (Active)</option>
-                     <option>4-6 Hours (Moderate)</option>
-                     <option selected>8+ Hours (Sedentary)</option>
-                  </select>
-               </div>
-               <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nutrition Strategy</label>
-                  <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white">
-                     <option selected>High Protein / Hypertrophy</option>
-                     <option>Keto / Fat Loss</option>
-                     <option>Balanced / Vitality</option>
-                  </select>
-               </div>
-               <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Plan Override</label>
-                  <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white">
-                     <option>Elite Hypertrophy V4</option>
-                     <option>Mobility Alpha</option>
-                     <option selected>Custom AI Protocol</option>
-                  </select>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* adherence Chart */}
+                <Card className="lg:col-span-2 glass border-white/5 p-6 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Adherence Trend (30D)</h3>
+                    <TrendingUp className="size-4 text-primary" />
+                  </div>
+                  <div className="h-[200px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={mockAdherenceData}>
+                        <defs>
+                          <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4fb6b2" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#4fb6b2" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#0F1115', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                          itemStyle={{ color: '#4fb6b2' }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="score" 
+                          stroke="#4fb6b2" 
+                          strokeWidth={2} 
+                          fillOpacity={1} 
+                          fill="url(#colorScore)" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card>
+
+                {/* Recent Activity Mini-Feed */}
+                <Card className="glass border-white/5 p-6 flex flex-col">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">Recent Activity</h3>
+                  <div className="space-y-4 flex-1">
+                    {exerciseLogs.slice(0, 3).map((act: any, i: number) => (
+                      <div key={i} className="flex gap-4 group cursor-pointer border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                        <div className="size-2 rounded-full bg-primary/40 mt-1.5" />
+                        <div>
+                          <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{act.exerciseName}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">{act.sets} Sets Completed</div>
+                          <div className="text-[9px] text-primary font-bold uppercase mt-1">{new Date(act.timestamp).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+               <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Administrative Audit History</h3>
+               <div className="rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden">
+                  <div className="grid grid-cols-[150px,200px,1fr] gap-px bg-white/5">
+                     <div className="bg-[#0F1115] p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Timestamp</div>
+                     <div className="bg-[#0F1115] p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Action</div>
+                     <div className="bg-[#0F1115] p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Details</div>
+
+                     {auditLogs.length > 0 ? auditLogs.map((log: any) => (
+                       <React.Fragment key={log.id}>
+                          <div className="bg-background p-5 text-[10px] text-muted-foreground font-bold">{new Date(log.createdAt).toLocaleString()}</div>
+                          <div className="bg-background p-5">
+                             <Badge className={cn(
+                               "text-[9px] font-black tracking-widest uppercase",
+                               log.action === 'role_change' ? "bg-purple-500/10 text-purple-400" : "bg-amber-500/10 text-amber-400"
+                             )}>
+                               {log.action.replace('_', ' ')}
+                             </Badge>
+                          </div>
+                          <div className="bg-background p-5 text-sm text-white font-medium italic opacity-80">{log.details}</div>
+                       </React.Fragment>
+                     )) : (
+                       <div className="col-span-3 bg-background p-10 text-center text-xs text-muted-foreground italic">No administrative history found for this member.</div>
+                     )}
+                  </div>
                </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="p-6 border-t border-white/5 bg-white/[0.02] flex justify-between items-center">
           <Badge className="bg-primary/10 text-primary border-primary/20">MEMBER SINCE APRIL 2026</Badge>
           <div className="flex gap-3">
-             <Button variant="outline" className="border-white/10 bg-white/5 text-white" onClick={onClose}>
-               Discard
-             </Button>
-             <Button className="bg-emerald-500 hover:bg-emerald-600 font-bold px-8 shadow-lg shadow-emerald-500/20">
-               Apply & Sync Profile
+             <Button className="bg-white/5 border border-white/10 text-white font-bold h-12 rounded-2xl px-8" onClick={onClose}>
+                Close Modal
              </Button>
           </div>
         </div>
+        </div>
       </div>
-    </div>
   );
 }
