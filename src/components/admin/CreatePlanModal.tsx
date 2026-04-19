@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { X, BookOpen, Rocket, Dumbbell, Zap, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,7 @@ interface CreatePlanModalProps {
 }
 
 export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({ name: '', duration: '12 Weeks', type: 'Strength', description: '' });
   const [error, setError] = useState('');
@@ -18,12 +20,18 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
 
   const createPlan = useMutation({
     mutationFn: async (data: typeof formData) => {
-      await api.post('/api/plans', { ...data, status: 'draft' });
+      const resp = await api.post('/api/plans', { ...data, status: 'draft' });
+      return resp.data;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['all-plans'] });
       setSuccess(true);
-      setTimeout(() => { setSuccess(false); onClose(); setFormData({ name: '', duration: '12 Weeks', type: 'Strength', description: '' }); }, 1500);
+      setTimeout(() => { 
+        setSuccess(false); 
+        onClose(); 
+        setFormData({ name: '', duration: '12 Weeks', type: 'Strength', description: '' }); 
+        if (data?.id) navigate(`/admin/plans/designer/${data.id}`);
+      }, 1500);
     },
     onError: (err: any) => {
       setError(err?.response?.data?.message || 'Failed to create plan. Check your connection.');

@@ -16,6 +16,7 @@ import { BlogManager } from './pages/admin/BlogManager';
 import { Blog } from './pages/Blog';
 import { Profile } from './pages/Profile';
 import CoachPlanBuilder from './pages/admin/CoachPlanBuilder';
+import PlanDesigner from './pages/admin/PlanDesigner';
 import SignInPage from './pages/auth/SignIn';
 import SignUpPage from './pages/auth/SignUp';
 
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: 'nutrition', element: <NutritionLibrary /> },
       { path: 'blog', element: <BlogManager /> },
       { path: 'plans', element: <CoachPlanBuilder /> },
+      { path: 'plans/designer/:id', element: <PlanDesigner /> },
       { path: 'ai-settings', element: <AISettings /> },
     ],
   },
