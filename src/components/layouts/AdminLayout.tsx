@@ -1,8 +1,9 @@
 import { Link, Outlet, useLocation } from 'react-router';
 import { Activity, LayoutDashboard, Users, Dumbbell, Bot, BookOpen, Menu, X, ChevronLeft, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SignedIn, SignedOut, UserButton, RedirectToSignIn } from '@clerk/clerk-react';
-import { useState } from 'react';
+import { SignedIn, SignedOut, UserButton, RedirectToSignIn, useAuth } from '@clerk/clerk-react';
+import { useState, useEffect } from 'react';
+import { setApiToken } from '@/lib/api';
 
 const adminNav = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -16,8 +17,15 @@ const adminNav = [
 
 export function AdminLayout() {
   const location = useLocation();
+  const { getToken } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const currentLabel = adminNav.find(i => location.pathname === i.path)?.label ?? 'Admin';
+
+  useEffect(() => {
+    getToken().then(token => {
+      setApiToken(token);
+    });
+  }, [getToken]);
 
   return (
     <>
