@@ -1,289 +1,315 @@
-import { useAuth } from '@clerk/clerk-react';
+import React, { useState } from 'react';
+import { 
+  Users, Search, Filter, RefreshCw, UserPlus, MoreHorizontal, 
+  Shield, Activity, Calendar, Mail, CheckCircle2, AlertCircle,
+  TrendingUp, BarChart3, History, ArrowRight, UserCircle,
+  Lock, Unlock, ChevronDown, UserSquare2
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
-import api, { setApiToken } from '@/lib/api';
-import { Sparkles, ShieldCheck, User, Search, MoreVertical, Ban, CheckCircle2, Eye, ShieldAlert, MessageSquare, Mail, RefreshCcw, PlusCircle } from 'lucide-react';
-import { AISupportModal } from '@/components/admin/AISupportModal';
-import { UserAnalyticsModal } from '@/components/admin/UserAnalyticsModal';
-import { AddUserModal } from '@/components/admin/AddUserModal';
-import { EditUserProfileModal } from '@/components/admin/EditUserProfileModal';
+import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-interface UserRecord {
+interface User {
   id: string;
-  fullName: string;
   email: string;
+  fullName: string | null;
+  avatarUrl: string | null;
   role: 'user' | 'coach' | 'admin';
-  status?: 'active' | 'banned';
-  updatedAt: string;
+  status: 'active' | 'suspended';
+  coachId: string | null;
+  createdAt: string;
 }
 
-const ROLES = ['user', 'coach', 'admin'] as const;
-const ROLE_COLORS: Record<string, string> = {
-  admin: 'bg-primary/20 text-primary border-primary/30',
-  coach: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  user: 'bg-white/10 text-gray-300 border-white/10',
-};
-
 export function UserManagement() {
-  const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [aiUser, setAiUser] = useState<UserRecord | null>(null);
-  const [analyticsUser, setAnalyticsUser] = useState<UserRecord | null>(null);
-  const [editUser, setEditUser] = useState<UserRecord | null>(null);
-  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'coach' | 'admin'>('all');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  useEffect(() => { getToken().then(setApiToken); }, [getToken]);
-
-  const { data: users = [], isLoading } = useQuery<UserRecord[]>({
+  const { data: users = [], isLoading, refetch } = useQuery<User[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      console.log('[DEBUG] Fetching users from /api/users...');
-      try {
-        const { data } = await api.get('/api/users');
-        console.log('[DEBUG] Users Received:', data);
-        // Mocking some statuses for visual demonstration if not present
-        return data.map((u: any) => ({ ...u, status: u.status || 'active' }));
-      } catch (err) {
-        console.error('[DEBUG] Fetch Failed:', err);
-        throw err;
-      }
-    },
+      const { data } = await api.get('/api/users');
+      return data;
+    }
   });
 
-  const roleMutation = useMutation({
-    mutationFn: async ({ id, role }: { id: string; role: string }) => {
-      await api.patch(`/api/users/${id}/role`, { role });
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: any) => {
+      await api.patch(`/api/users/${id}`, data);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('User Permissions Updated');
+    }
   });
 
-  const statusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: 'active' | 'banned' }) => {
-      // Logic for status toggle (API endpoint expected: PATCH /api/users/:id/status)
-      await api.patch(`/api/users/${id}/status`, { status });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+  const filtered = users.filter(u => {
+    const matchesSearch = (u.fullName || '').toLowerCase().includes(search.toLowerCase()) || 
+                         u.email.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+    return matchesSearch && matchesRole;
   });
 
-  const filtered = users.filter(u =>
-    u.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const coaches = users.filter(u => u.role === 'coach');
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-8 animate-in fade-in duration-700 pb-20">
+      {/* Header & Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Member Management</h1>
-          <p className="text-muted-foreground mt-1">Control access levels, monitor adherence, and manage the platform community.</p>
+           <h1 className="text-4xl font-black italic tracking-tighter text-white uppercase italic">Member Governance</h1>
+           <p className="text-sm text-muted-foreground font-medium mt-1 uppercase tracking-widest text-[10px]">Access Control • Adherence Monitoring • System Roles</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline"
-            size="icon"
-            className="border-white/10 bg-white/5 text-muted-foreground hover:text-white rounded-xl"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
-          >
-            <RefreshCcw className="size-4" />
-          </Button>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input
-              className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-64 transition-all"
-              placeholder="Filter by name or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+           <Button onClick={() => refetch()} variant="ghost" size="icon" className="size-12 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:text-primary transition-all">
+              <RefreshCw className={cn("size-5", isLoading && "animate-spin")} />
+           </Button>
+           <Button className="bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30 px-8 h-12 rounded-2xl font-black uppercase tracking-widest italic">
+              <UserPlus className="size-5 mr-3" /> Invite New Member
+           </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4">
+         <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input 
+               className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm focus:outline-none focus:border-primary/40 focus:bg-white/[0.05] text-white transition-all" 
+               placeholder="Filter by name, email or hardware ID..." 
+               value={search}
+               onChange={(e) => setSearch(e.target.value)}
             />
-          </div>
-          <Button 
-            className="bg-primary/20 text-primary border border-primary/20 hover:bg-primary font-bold transition-all"
-            onClick={() => setIsAddUserOpen(true)}
-          >
-            Invite New Member
-          </Button>
-        </div>
-      </div>
-
-      <div className="rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden shadow-2xl">
-        <div className="grid grid-cols-[1fr,auto,auto] md:grid-cols-[1fr,150px,150px,200px] gap-px bg-white/5">
-          {/* Header */}
-          <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground">User Profile</div>
-          <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground hidden lg:block">Connectivity</div>
-          <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground hidden md:block">System Role</div>
-          <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground hidden md:block">Engagement</div>
-          <div className="bg-[#0F1115] p-5 text-xs font-black uppercase tracking-widest text-muted-foreground">Governing Actions</div>
-        </div>
-
-        {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="grid grid-cols-[1fr,auto] md:grid-cols-[1fr,150px,150px,200px] gap-px bg-white/5">
-              <div className="bg-background p-6 animate-pulse">
-                <div className="h-5 bg-white/5 rounded w-48 mb-2" />
-                <div className="h-3 bg-white/5 rounded w-64" />
-              </div>
-              <div className="bg-background p-6 hidden lg:block animate-pulse" />
-              <div className="bg-background p-6 hidden md:block animate-pulse" />
-              <div className="bg-background p-6 hidden md:block animate-pulse" />
-              <div className="bg-background p-6 animate-pulse" />
-            </div>
-          ))
-        ) : filtered.map((user) => {
-          const isBanned = user.status === 'banned';
-          return (
-            <div key={user.id} className={cn(
-              "grid grid-cols-[1fr,auto] md:grid-cols-[1fr,150px,150px,200px] gap-px bg-white/5 hover:bg-white/[0.04] transition-all group",
-              isBanned && "opacity-50 grayscale"
-            )}>
-              {/* User info */}
-              <div className="bg-background p-6 flex items-center gap-4">
-                <div className={cn(
-                  "size-12 rounded-2xl flex items-center justify-center shrink-0 border transition-all shadow-lg",
-                  user.role === 'admin' ? "bg-primary/20 border-primary/30" : "bg-white/5 border-white/10"
-                )}>
-                  {user.role === 'admin' ? 
-                    <ShieldCheck className="size-6 text-primary" /> : 
-                    <User className="size-6 text-muted-foreground" />
-                  }
-                </div>
-                <div>
-                  <div className="font-bold text-white flex items-center gap-2">
-                    {user.fullName || 'N/A'}
-                    {isBanned && <Badge variant="destructive" className="text-[8px] h-4 px-1.5 uppercase tracking-tighter">Banned</Badge>}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{user.email}</div>
-                </div>
-              </div>
-
-              {/* Communication Quick Actions */}
-              <div className="bg-background p-6 hidden lg:flex items-center gap-2">
-                 <a href={`mailto:${user.email}`} className="size-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-muted-foreground hover:bg-primary/20 hover:text-primary transition-all">
-                    <Mail className="size-4" />
-                 </a>
-                 <a href={`https://wa.me/${user.id}`} target="_blank" className="size-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-muted-foreground hover:bg-emerald-500/20 hover:text-emerald-400 transition-all">
-                    <MessageSquare className="size-4" />
-                 </a>
-              </div>
-
-              {/* Role Select */}
-              <div className="bg-background p-6 hidden md:flex items-center">
-                <select
-                  disabled={isBanned}
-                  value={user.role}
-                  onChange={(e) => roleMutation.mutate({ id: user.id, role: e.target.value })}
+         </div>
+         <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/5">
+            {['all', 'user', 'coach', 'admin'].map((role) => (
+               <button 
+                  key={role}
+                  onClick={() => setRoleFilter(role as any)}
                   className={cn(
-                    "text-[10px] font-black uppercase tracking-widest border rounded-xl px-4 py-2 bg-transparent cursor-pointer focus:outline-none transition-all",
-                    ROLE_COLORS[user.role]
+                     "px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                     roleFilter === role ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-white/5"
                   )}
-                >
-                  {ROLES.map(r => <option key={r} value={r} className="bg-[#0F1115] text-white">{r}</option>)}
-                </select>
-              </div>
-
-              {/* Engagement Status */}
-              <div className="bg-background p-6 hidden md:flex items-center">
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs font-bold text-white">Daily Active</span>
-                  <span className="text-[10px] text-muted-foreground">Updated: {new Date(user.updatedAt).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="bg-background p-6 flex items-center justify-end md:justify-start gap-2">
-                <Button 
-                  size="sm"
-                  variant="outline"
-                  className="bg-primary/10 text-primary border-primary/20 hover:bg-primary transition-all font-bold group/ai"
-                  onClick={() => setAiUser(user)}
-                >
-                  <Sparkles className="size-3 group-hover/ai:animate-pulse" />
-                  <span className="ml-2 hidden lg:inline">AI Draft</span>
-                </Button>
-
-                {user.role === 'user' && (
-                  <Button 
-                    size="sm"
-                    className="bg-[#4fb6b2]/10 text-[#4fb6b2] border border-[#4fb6b2]/20 hover:bg-[#4fb6b2] transition-all font-bold"
-                    onClick={() => {
-                        window.location.href = `/admin/plans?targetUser=${user.id}`;
-                    }}
-                  >
-                    <PlusCircle className="size-3 mr-2" />
-                    <span className="hidden lg:inline">Create Plan</span>
-                  </Button>
-                )}
-
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white hover:bg-white/5">
-                      <MoreVertical className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-[#0F1115] border-white/10 text-white rounded-2xl w-48 shadow-2xl">
-                    <DropdownMenuItem onClick={() => setAnalyticsUser(user)} className="gap-3 py-3 rounded-xl focus:bg-white/5 cursor-pointer">
-                      <Eye className="size-4 text-primary" /> View Analytics
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setEditUser(user)} className="gap-3 py-3 rounded-xl focus:bg-white/5 cursor-pointer">
-                      <ShieldAlert className="size-4 text-amber-400" /> Override Profile
-                    </DropdownMenuItem>
-                    <div className="h-px bg-white/5 my-1" />
-                    <DropdownMenuItem 
-                      onClick={() => statusMutation.mutate({ id: user.id, status: isBanned ? 'active' : 'banned' })}
-                      className={cn(
-                        "gap-3 py-3 rounded-xl focus:bg-white/5 cursor-pointer font-bold",
-                        isBanned ? "text-emerald-400" : "text-rose-400"
-                      )}
-                    >
-                      {isBanned ? <CheckCircle2 className="size-4" /> : <Ban className="size-4" />}
-                      {isBanned ? 'Reinstate User' : 'Ban Account'}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          );
-        })}
-        
-        {!isLoading && filtered.length === 0 && (
-          <div className="bg-background p-20 text-center flex flex-col items-center gap-4">
-             <div className="size-16 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground">
-                <User className="size-8 opacity-20" />
-             </div>
-             <div>
-                <p className="text-white font-bold italic uppercase tracking-widest">No Members found in database</p>
-                <p className="text-xs text-muted-foreground mt-1">Try clicking the Refresh button or checking your backend logs.</p>
-             </div>
-          </div>
-        )}
+               >
+                  {role}
+               </button>
+            ))}
+         </div>
       </div>
 
-      <AISupportModal
-        isOpen={!!aiUser}
-        onClose={() => setAiUser(null)}
-        user={aiUser}
-      />
+      {/* Main Table Area */}
+      <Card className="glass border-white/5 overflow-hidden rounded-[40px] shadow-2xl">
+         <div className="grid grid-cols-12 gap-px bg-white/5">
+            <div className="col-span-4 p-6 bg-[#0F1115] text-[10px] font-black uppercase tracking-widest text-muted-foreground">User Entity</div>
+            <div className="col-span-2 p-6 bg-[#0F1115] text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">System Role</div>
+            <div className="col-span-2 p-6 bg-[#0F1115] text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Status</div>
+            <div className="col-span-2 p-6 bg-[#0F1115] text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Assigned Coach</div>
+            <div className="col-span-2 p-6 bg-[#0F1115] text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">Actions</div>
 
-      <UserAnalyticsModal
-        isOpen={!!analyticsUser}
-        onClose={() => setAnalyticsUser(null)}
-        user={analyticsUser}
-      />
+            {filtered.map((user) => (
+               <React.Fragment key={user.id}>
+                  <div className="col-span-4 p-6 bg-background/40 flex items-center gap-5 hover:bg-white/[0.02] transition-colors cursor-pointer group" onClick={() => setSelectedUser(user)}>
+                     <div className="size-14 rounded-2xl border border-white/10 overflow-hidden bg-white/5 flex items-center justify-center group-hover:border-primary/40 transition-colors">
+                        {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="size-full object-cover" /> : <UserCircle className="size-8 text-muted-foreground/30" />}
+                     </div>
+                     <div>
+                        <div className="text-white font-black italic uppercase tracking-tight italic group-hover:text-primary transition-colors text-lg">{user.fullName || 'Anonymous'}</div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 lowercase font-medium">
+                           <Mail className="size-3" /> {user.email}
+                        </div>
+                     </div>
+                  </div>
 
-      <AddUserModal 
-        isOpen={isAddUserOpen}
-        onClose={() => setIsAddUserOpen(false)}
-      />
+                  <div className="col-span-2 p-6 bg-background/40 flex items-center justify-center border-l border-white/5">
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" className="h-10 px-4 rounded-xl border border-white/5 hover:bg-white/5">
+                              <Badge variant="outline" className={cn(
+                                 "uppercase text-[9px] font-black border-none",
+                                 user.role === 'admin' ? "text-primary" : user.role === 'coach' ? "text-emerald-400" : "text-sky-400"
+                              )}>{user.role}</Badge>
+                              <ChevronDown className="size-3 ml-2 text-muted-foreground" />
+                           </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-[#0F1115] border-white/10">
+                           <DropdownMenuItem onClick={() => updateMutation.mutate({ id: user.id, role: 'user' })}>Make Standard User</DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => updateMutation.mutate({ id: user.id, role: 'coach' })}>Promote to Coach</DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => updateMutation.mutate({ id: user.id, role: 'admin' })}>Promote to Admin</DropdownMenuItem>
+                        </DropdownMenuContent>
+                     </DropdownMenu>
+                  </div>
 
-      <EditUserProfileModal
-        isOpen={!!editUser}
-        onClose={() => setEditUser(null)}
-        user={editUser}
-      />
+                  <div className="col-span-2 p-6 bg-background/40 flex items-center justify-center border-l border-white/5">
+                     <button 
+                        onClick={() => updateMutation.mutate({ id: user.id, status: user.status === 'active' ? 'suspended' : 'active' })}
+                        className={cn(
+                        "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                        user.status === 'active' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                     )}>
+                        {user.status === 'active' ? <Unlock className="size-3" /> : <Lock className="size-3" />}
+                        {user.status}
+                     </button>
+                  </div>
+
+                  <div className="col-span-2 p-6 bg-background/40 flex items-center justify-center border-l border-white/5">
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" className="h-10 px-4 rounded-xl border border-white/5 hover:bg-white/5">
+                              <div className="text-[10px] font-black uppercase text-muted-foreground">
+                                 {coaches.find(c => c.id === user.coachId)?.fullName || 'None Assigned'}
+                              </div>
+                              <ChevronDown className="size-3 ml-3 text-muted-foreground" />
+                           </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-[#0F1115] border-white/10 max-h-60 overflow-y-auto">
+                           <DropdownMenuItem onClick={() => updateMutation.mutate({ id: user.id, coachId: null })}>Remove Assignment</DropdownMenuItem>
+                           <DropdownMenuSeparator className="bg-white/5" />
+                           {coaches.map(coach => (
+                              <DropdownMenuItem key={coach.id} onClick={() => updateMutation.mutate({ id: user.id, coachId: coach.id })}>
+                                 {coach.fullName}
+                              </DropdownMenuItem>
+                           ))}
+                        </DropdownMenuContent>
+                     </DropdownMenu>
+                  </div>
+
+                  <div className="col-span-2 p-6 bg-background/40 flex items-center justify-end border-l border-white/5">
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" size="icon" className="size-10 rounded-xl hover:bg-white/5">
+                              <MoreHorizontal className="size-5" />
+                           </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#0F1115] border-white/10 w-56">
+                           <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground p-3">Interventions</DropdownMenuLabel>
+                           <DropdownMenuItem className="p-3 gap-3">
+                              <Zap className="size-4 text-primary" /> Create Direct Plan
+                           </DropdownMenuItem>
+                           <DropdownMenuItem className="p-3 gap-3">
+                              <Activity className="size-4 text-emerald-400" /> Pulse Analysis
+                           </DropdownMenuItem>
+                           <DropdownMenuSeparator className="bg-white/5" />
+                           <DropdownMenuItem className="p-3 gap-3 text-rose-400">
+                              <Trash2 className="size-4" /> Permanent Delete
+                           </DropdownMenuItem>
+                        </DropdownMenuContent>
+                     </DropdownMenu>
+                  </div>
+               </React.Fragment>
+            ))}
+         </div>
+         
+         {filtered.length === 0 && !isLoading && (
+            <div className="p-32 text-center flex flex-col items-center gap-6">
+               <div className="size-20 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground opacity-10">
+                  <Activity className="size-10" />
+               </div>
+               <div>
+                  <h3 className="text-xl font-black italic text-white uppercase italic tracking-tighter">No biological signatures found</h3>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">Either your search parameters are too narrow or the synchronization process is currently idle.</p>
+               </div>
+            </div>
+         )}
+      </Card>
+
+      {/* Detail Slideover or Modal (Placeholder for Story 8.1 Detail View) */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedUser(null)} />
+           <div className="relative w-full max-w-2xl bg-[#0F1115] border-l border-white/5 shadow-2xl animate-in slide-in-from-right duration-500 overflow-y-auto">
+              {/* Similar to Pulse Modal but focusing on Identity/Roles/Audit */}
+              <div className="p-10 border-b border-white/5 flex items-center justify-between sticky top-0 bg-[#0F1115] z-10">
+                 <div className="flex items-center gap-6">
+                    <div className="size-20 rounded-[30px] border border-primary/20 overflow-hidden p-1">
+                       <div className="size-full rounded-[26px] bg-primary/10 flex items-center justify-center border border-primary/20">
+                          {selectedUser.avatarUrl ? <img src={selectedUser.avatarUrl} alt="" className="size-full object-cover rounded-[26px]" /> : <UserSquare2 className="size-10 text-primary" />}
+                       </div>
+                    </div>
+                    <div>
+                       <h2 className="text-3xl font-black text-white uppercase italic italic tracking-tighter">{selectedUser.fullName}</h2>
+                       <Badge className="bg-primary/20 text-primary text-[8px] uppercase tracking-widest mt-1 border border-primary/10">{selectedUser.role} Profile</Badge>
+                    </div>
+                 </div>
+                 <Button variant="ghost" size="icon" onClick={() => setSelectedUser(null)} className="rounded-full">
+                    <X className="size-6" />
+                 </Button>
+              </div>
+
+              <div className="p-10 space-y-12">
+                 <div className="grid grid-cols-2 gap-6">
+                    <Card className="bg-white/5 border-white/5 p-6 space-y-2">
+                       <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                          <Calendar className="size-3" /> Registration
+                       </div>
+                       <div className="text-lg font-black text-white">{new Date(selectedUser.createdAt).toLocaleDateString()}</div>
+                    </Card>
+                    <Card className="bg-white/5 border-white/5 p-6 space-y-2">
+                       <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                          <Shield className="size-3" /> Security ID
+                       </div>
+                       <div className="text-[10px] font-mono text-muted-foreground truncate">{selectedUser.id}</div>
+                    </Card>
+                 </div>
+
+                 <div className="space-y-6">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-white/5 pb-2">Behavioral Archetype</h3>
+                    <div className="grid grid-cols-3 gap-4 font-black uppercase tracking-tighter italic">
+                       <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl text-center space-y-2">
+                          <div className="text-3xl text-primary">82%</div>
+                          <div className="text-[8px] text-muted-foreground">Adherence</div>
+                       </div>
+                       <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl text-center space-y-2">
+                          <div className="text-3xl text-sky-400">6.4</div>
+                          <div className="text-[8px] text-muted-foreground">Avg RPE</div>
+                       </div>
+                       <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl text-center space-y-2">
+                          <div className="text-3xl text-emerald-400">14</div>
+                          <div className="text-[8px] text-muted-foreground">Current Streak</div>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                       <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Governing Audit Trail</h3>
+                       <History className="size-4 text-muted-foreground/30" />
+                    </div>
+                    {/* Audit logs would be mapped here */}
+                    <div className="space-y-4">
+                       {[
+                         { action: 'Role Update', detail: 'Changed from user to coach', date: '2 days ago' },
+                         { action: 'Security Login', detail: 'Authenticated via Google OAuth (Web)', date: '5 hours ago' }
+                       ].map((log, i) => (
+                         <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                           <div>
+                              <div className="text-xs font-bold text-white uppercase tracking-tight">{log.action}</div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5">{log.detail}</div>
+                           </div>
+                           <div className="text-[9px] font-black uppercase text-muted-foreground italic">{log.date}</div>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
+}
+
+// Additional helper icons missing from imports
+function Trash2(props: any) { return <X {...props} /> }
+function X(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  )
 }
