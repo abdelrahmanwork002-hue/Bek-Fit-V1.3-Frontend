@@ -248,6 +248,18 @@ export function UserManagement() {
             </div>
           );
         })}
+        
+        {!isLoading && filtered.length === 0 && (
+          <div className="bg-background p-20 text-center flex flex-col items-center gap-4">
+             <div className="size-16 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground">
+                <User className="size-8 opacity-20" />
+             </div>
+             <div>
+                <p className="text-white font-bold italic uppercase tracking-widest">No Members found in database</p>
+                <p className="text-xs text-muted-foreground mt-1">Try clicking the Refresh button or checking your backend logs.</p>
+             </div>
+          </div>
+        )}
       </div>
 
       <AISupportModal
