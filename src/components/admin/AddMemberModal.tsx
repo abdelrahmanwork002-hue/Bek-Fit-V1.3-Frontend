@@ -39,7 +39,8 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
       console.error('[BekFit DEBUG] Provisioning Error:', err);
       const url = err?.config?.url || 'unknown';
       const base = err?.config?.baseURL || 'relative';
-      setError(`${err?.response?.data?.message || 'Failed to provision user.'} (Endpoint: ${base}${url})`);
+      const serverMsg = err?.response?.data?.error || err?.response?.data?.message || 'Failed to provision user.';
+      setError(`${serverMsg} (Endpoint: ${base}${url})`);
     }
   });
 
