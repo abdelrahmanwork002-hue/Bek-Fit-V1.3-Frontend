@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Shield, User, Mail, Phone, Lock, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, UserPlus, Shield, User, Mail, Lock, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,7 +18,6 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    phoneNumber: '',
     password: '',
     confirmPassword: '',
     role: 'user' as 'user' | 'coach' | 'admin'
@@ -100,14 +99,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Phone Number</label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <input className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm text-white focus:border-primary/50" placeholder="+1234567890" value={formData.phoneNumber} onChange={e => setFormData({...formData, phoneNumber: e.target.value})} />
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-6">
             <div className="space-y-3">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Initial Designation</label>
               <div className="flex p-1 bg-white/5 rounded-2xl border border-white/5">
