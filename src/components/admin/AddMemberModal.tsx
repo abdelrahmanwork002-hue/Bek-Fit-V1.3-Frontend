@@ -3,6 +3,7 @@ import { X, UserPlus, Shield, User, Mail, Phone, Lock, Loader2, CheckCircle2 } f
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@clerk/clerk-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -24,9 +25,14 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
   });
   const [error, setError] = useState('');
 
+  const { getToken } = useAuth();
+  
   const createUser = useMutation({
     mutationFn: async (data: typeof formData) => {
-      await api.post('/api/users/create', data);
+      const token = await getToken();
+      await api.post('/api/users/create', data, {
+         headers: { Authorization: `Bearer ${token}` }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
