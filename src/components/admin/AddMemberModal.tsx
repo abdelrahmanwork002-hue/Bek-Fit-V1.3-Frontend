@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Shield, User, Mail, Lock, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, UserPlus, Shield, User, Mail, Lock, Loader2, CheckCircle2, Zap, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,6 +23,27 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
     role: 'user' as 'user' | 'coach' | 'admin'
   });
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const generatePassword = () => {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let retVal = "";
+    // Ensure we meet all categories
+    retVal += "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)];
+    retVal += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random() * 26)];
+    retVal += "0123456789"[Math.floor(Math.random() * 10)];
+    retVal += "!@#$%^&*()_+"[Math.floor(Math.random() * 12)];
+    
+    for (let i = 0; i < 10; ++i) {
+      retVal += charset[Math.floor(Math.random() * charset.length)];
+    }
+    // Shuffle
+    retVal = retVal.split('').sort(() => 0.5 - Math.random()).join('');
+    
+    setFormData({ ...formData, password: retVal, confirmPassword: retVal });
+    setShowPassword(true);
+    toast.success('Secure Password Generated');
+  };
 
   const { getToken } = useAuth();
   
@@ -114,18 +135,48 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Master Password</label>
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Master Password</label>
+                <button type="button" onClick={generatePassword} className="text-[9px] font-bold text-primary hover:underline uppercase tracking-widest flex items-center gap-1">
+                  <Zap className="size-3" /> Suggest Secure
+                </button>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <input required type="password" minLength={8} className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm text-white focus:border-primary/50" placeholder="••••••••" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                <input 
+                  required 
+                  type={showPassword ? "text" : "password"} 
+                  minLength={8} 
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm text-white focus:border-primary/50" 
+                  placeholder="••••••••" 
+                  value={formData.password} 
+                  onChange={e => setFormData({...formData, password: e.target.value})} 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
               </div>
             </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Confirm Signature</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <input required type="password" minLength={8} className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm text-white focus:border-primary/50" placeholder="••••••••" value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})} />
-              </div>
+            <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Security Standard</label>
+               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3 space-y-1.5">
+                  <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-tight text-white/40">
+                     <CheckCircle2 className={cn("size-3", formData.password.length >= 8 ? "text-emerald-400" : "text-white/20")} /> Minimum 8-16 Chars
+                  </div>
+                  <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-tight text-white/40">
+                     <CheckCircle2 className={cn("size-3", /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) ? "text-emerald-400" : "text-white/20")} /> Upper & Lowercase
+                  </div>
+                  <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-tight text-white/40">
+                     <CheckCircle2 className={cn("size-3", /[0-9]/.test(formData.password) ? "text-emerald-400" : "text-white/20")} /> Numeric Digit
+                  </div>
+                  <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-tight text-white/40">
+                     <CheckCircle2 className={cn("size-3", /[^A-Za-z0-9]/.test(formData.password) ? "text-emerald-400" : "text-white/20")} /> Special Symbol
+                  </div>
+               </div>
             </div>
           </div>
 
