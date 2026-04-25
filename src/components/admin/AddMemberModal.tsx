@@ -58,7 +58,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('Member Synchronized Successfully');
       onClose();
-      setFormData({ fullName: '', email: '', phoneNumber: '', password: '', confirmPassword: '', role: 'user' });
+      setFormData({ fullName: '', email: '', password: '', confirmPassword: '', role: 'user' });
       setStep(1);
     },
     onError: (err: any) => {
