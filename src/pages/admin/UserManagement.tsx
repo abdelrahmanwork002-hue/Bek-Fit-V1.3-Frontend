@@ -42,7 +42,7 @@ export function UserManagement() {
     queryKey: ['admin-users'],
     queryFn: async () => {
       const token = await getToken();
-      const { data } = await api.get('/api/users', {
+      const { data } = await api.get('/api/users-v2', {
          headers: { Authorization: `Bearer ${token}` }
       });
       return data;
